@@ -715,18 +715,6 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
     setSelectedSkill(null);
   };
 
-  const handleAddExperience = () => {
-    console.log("Add experience clicked");
-  };
-
-  const handleAddProject = () => {
-    console.log("Add project clicked");
-  };
-
-  const handleAddEducation = () => {
-    console.log("Add education clicked");
-  };
-
   const handleEditExperience = () => {
     console.log("Edit experience:", selectedExperience?.id);
   };
