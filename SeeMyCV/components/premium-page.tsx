@@ -1,5 +1,11 @@
 "use client";
 
+import { useState, useCallback } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  EmbeddedCheckoutProvider,
+  EmbeddedCheckout,
+} from "@stripe/react-stripe-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +19,7 @@ import {
   Star,
   ArrowRight,
   HelpCircle,
+  X,
 } from "lucide-react";
 import {
   Accordion,
@@ -20,13 +27,32 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface PremiumPageProps {
   onSubscribe?: () => void;
 }
 
 export function PremiumPage({ onSubscribe }: PremiumPageProps) {
-  const oneTimePrice = 20;
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const oneTimePrice = 0.02; // £0.02 for testing
+
+  const fetchClientSecret = useCallback(async () => {
+    const res = await fetch("/api/stripe/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId: "premium-lifetime" }),
+    });
+    const data = await res.json();
+    return data.clientSecret as string;
+  }, []);
 
   const features = [
     {
@@ -87,6 +113,23 @@ export function PremiumPage({ onSubscribe }: PremiumPageProps) {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
+      {/* Stripe Embedded Checkout Dialog */}
+      <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="w-4 h-4 text-premium" />
+              Upgrade to Premium
+            </DialogTitle>
+          </DialogHeader>
+          <EmbeddedCheckoutProvider
+            stripe={stripePromise}
+            options={{ fetchClientSecret }}
+          >
+            <EmbeddedCheckout />
+          </EmbeddedCheckoutProvider>
+        </DialogContent>
+      </Dialog>
       {/* Hero Section */}
       <div className="text-center mb-12">
         <Badge className="bg-premium text-premium-foreground mb-4">
@@ -178,7 +221,7 @@ export function PremiumPage({ onSubscribe }: PremiumPageProps) {
           </CardHeader>
           <CardContent>
             <div className="mb-6">
-              <span className="text-4xl font-bold text-foreground">£{oneTimePrice}</span>
+              <span className="text-4xl font-bold text-foreground">£{oneTimePrice.toFixed(2)}</span>
               <span className="text-muted-foreground"> one-time</span>
             </div>
             <ul className="space-y-3">
@@ -203,7 +246,7 @@ export function PremiumPage({ onSubscribe }: PremiumPageProps) {
           <CardFooter>
             <Button
               className="w-full bg-premium text-premium-foreground hover:bg-premium/90"
-              onClick={onSubscribe}
+              onClick={() => setCheckoutOpen(true)}
             >
               <Crown className="w-4 h-4 mr-2" />
               Upgrade to Premium
