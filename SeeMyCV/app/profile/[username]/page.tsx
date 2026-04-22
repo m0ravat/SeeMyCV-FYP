@@ -63,7 +63,6 @@ function transformProjects(dbProjects: any[]) {
 function transformEducation(dbEducation: any[]) {
   return dbEducation.map((edu) => ({
     id: edu.education_id?.toString() || "",
-    degree: "",              // education table has no degree name column
     institution: edu.institute_name || "",
     location: edu.location || "",
     startDate: formatDate(edu.start_date),

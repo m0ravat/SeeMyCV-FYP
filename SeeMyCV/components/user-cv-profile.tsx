@@ -71,7 +71,6 @@ interface Project {
 
 interface Education {
   id: string;
-  degree: string;
   institution: string;
   location: string;
   startDate: string;
@@ -171,7 +170,6 @@ function transformProjects(dbProjects: any[]): Project[] {
 function transformEducation(dbEducation: any[]): Education[] {
   return dbEducation.map(edu => ({
     id: edu.education_id?.toString() || '',
-    degree: '',                          // education table has no degree name column
     institution: edu.institute_name || '',
     location: edu.location || '',
     startDate: formatDate(edu.start_date),
