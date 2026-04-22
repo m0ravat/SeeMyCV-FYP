@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { UserCVProfile } from "@/components/user-cv-profile";
-import { ArrowLeft, Home } from "lucide-react";
+import { ProfilePage } from "@/components/profile-page";
+import { ArrowLeft } from "lucide-react";
 
-export default function ProfilePage() {
+export default function ProfileRoute() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -23,7 +23,7 @@ export default function ProfilePage() {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">CV</span>
             </div>
-            <span className="font-bold text-xl text-foreground">CVConnect</span>
+            <span className="font-bold text-xl text-foreground">SeeMyCV</span>
           </Link>
           <div className="w-[140px]" />
         </div>
@@ -31,13 +31,13 @@ export default function ProfilePage() {
 
       {/* Main Content */}
       <main className="py-8 px-4">
-        <UserCVProfile isOwnProfile={true} />
+        <ProfilePage />
       </main>
 
       {/* Footer */}
       <footer className="border-t border-border py-6 mt-12">
         <div className="max-w-7xl mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>CVConnect - Professional CV Sharing Platform</p>
+          <p>SeeMyCV - Professional CV Sharing Platform</p>
         </div>
       </footer>
     </div>
