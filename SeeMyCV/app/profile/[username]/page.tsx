@@ -95,6 +95,7 @@ export default function PublicProfilePage() {
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   useEffect(() => {
     if (!username) return;
@@ -104,6 +105,10 @@ export default function PublicProfilePage() {
         const res = await fetch(`/api/user/${username}`);
         if (res.status === 404) {
           setNotFound(true);
+          return;
+        }
+        if (res.status === 403) {
+          setIsPrivate(true);
           return;
         }
         if (!res.ok) throw new Error("Failed to fetch");
@@ -159,6 +164,21 @@ export default function PublicProfilePage() {
         {loading ? (
           <div className="flex items-center justify-center min-h-[400px]">
             <p className="text-muted-foreground">Loading profile...</p>
+          </div>
+        ) : isPrivate ? (
+          <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+              </svg>
+            </div>
+            <p className="text-xl font-semibold text-foreground">This account is private</p>
+            <p className="text-muted-foreground text-center max-w-sm">
+              {username}&apos;s profile is not publicly visible.
+            </p>
+            <Link href="/dashboard">
+              <Button variant="outline">Back to Dashboard</Button>
+            </Link>
           </div>
         ) : notFound ? (
           <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">

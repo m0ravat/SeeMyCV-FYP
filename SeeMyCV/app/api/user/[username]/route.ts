@@ -34,6 +34,11 @@ export async function GET(
 
     const profile = profileResult.rows[0];
 
+    // Block access if account is private
+    if (profile.is_searchable === false) {
+      return NextResponse.json({ error: 'private' }, { status: 403 });
+    }
+
     // Fetch CV
     const cvResult = await query(
       'SELECT cv_id, about_me FROM cv WHERE profile_id = $1 LIMIT 1',
