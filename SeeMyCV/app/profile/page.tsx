@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { UserCVProfile } from "@/components/user-cv-profile";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Home } from "lucide-react";
 
 export default function ProfilePage() {
   return (
@@ -43,4 +43,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

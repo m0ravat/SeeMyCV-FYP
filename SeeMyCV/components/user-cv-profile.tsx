@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useUser } from "@/lib/use-user";
 import { Button } from "@/components/ui/button";
 import {
@@ -96,7 +96,6 @@ interface CVProfileData {
 interface UserCVProfileProps {
   data?: CVProfileData;
   isOwnProfile?: boolean;
-  username?: string;
   onEdit?: () => void;
 }
 
@@ -135,11 +134,9 @@ function transformProjects(dbProjects: any[]): Project[] {
   return dbProjects.map(proj => ({
     id: proj.project_id?.toString() || '',
     name: proj.title || '',
-    description: proj.description || proj.summary || '',
+    description: proj.summary || '',
     technologies: proj.skills ? proj.skills.split(',').map((s: string) => s.trim()) : [],
     url: proj.link,
-    startDate: proj.start_date,
-    endDate: proj.end_date,
     bullets: [],
   }));
 }
@@ -147,17 +144,171 @@ function transformProjects(dbProjects: any[]): Project[] {
 function transformEducation(dbEducation: any[]): Education[] {
   return dbEducation.map(edu => ({
     id: edu.education_id?.toString() || '',
-    degree: edu.institute_name || '', // Using institute_name as fallback since degree field doesn't exist
+    degree: edu.institute_name || '',
     institution: edu.institute_name || '',
     location: edu.location || '',
     startDate: edu.start_date || '',
     endDate: edu.end_date || '',
     grade: edu.achieved,
-    target: edu.target,
-    gradeDescription: edu.grade_description,
   }));
 }
 
+const defaultData: CVProfileData = {
+  name: "Muhammad Ravat",
+  location: "London, UK",
+  phone: "07769004379",
+  email: "moravat763@gmail.com",
+  website: "https://moravat.me",
+  github: "https://github.com/m0ravat",
+  aboutMe: "Passionate full-stack software engineer with a strong foundation in building scalable web applications. I have a proven track record of delivering high-quality code and collaborating effectively with teams. Experienced in modern development practices, cloud technologies, and agile methodologies. I thrive in challenging environments where I can contribute to innovative solutions and continue learning new technologies.",
+  skills: [
+    {
+      category: "Coding Languages",
+      items: [
+        { name: "HTML", level: "expert", yearsExperience: 5, description: "Extensive experience building semantic, accessible HTML structures for web applications." },
+        { name: "CSS", level: "expert", yearsExperience: 5, description: "Advanced styling including Flexbox, Grid, animations, and responsive design." },
+        { name: "JavaScript/Node.js", level: "advanced", yearsExperience: 4, description: "Full-stack JavaScript development including async programming and API development." },
+        { name: "TypeScript", level: "advanced", yearsExperience: 3, description: "Strong typing for large-scale applications with generics and advanced patterns." },
+        { name: "Java", level: "intermediate", yearsExperience: 2, description: "Object-oriented programming and Spring Boot development." },
+        { name: "C#", level: "intermediate", yearsExperience: 2, description: ".NET development and Unity game development basics." },
+        { name: "Python", level: "intermediate", yearsExperience: 2, description: "Django web development and data processing scripts." },
+      ],
+    },
+    {
+      category: "Frameworks/Libraries",
+      items: [
+        { name: "Django", level: "intermediate", yearsExperience: 2, description: "Python web framework for rapid development." },
+        { name: "Springboot", level: "intermediate", yearsExperience: 1, description: "Java-based enterprise application framework." },
+        { name: "Express", level: "advanced", yearsExperience: 3, description: "Node.js web application framework for APIs." },
+        { name: "Vue", level: "intermediate", yearsExperience: 2, description: "Progressive JavaScript framework for UIs." },
+        { name: "React", level: "advanced", yearsExperience: 3, description: "Component-based UI library with hooks and state management." },
+        { name: "NextJS", level: "advanced", yearsExperience: 2, description: "React framework with SSR, SSG, and API routes." },
+        { name: ".NET", level: "beginner", yearsExperience: 1, description: "Microsoft framework for building applications." },
+        { name: "Tailwind CSS", level: "expert", yearsExperience: 3, description: "Utility-first CSS framework for rapid UI development." },
+      ],
+    },
+    {
+      category: "Databases",
+      items: [
+        { name: "MySQL", level: "advanced", yearsExperience: 3, description: "Relational database design and optimization." },
+        { name: "MongoDB", level: "intermediate", yearsExperience: 2, description: "NoSQL document database for flexible schemas." },
+        { name: "Google Cloud Platform (GCP)", level: "intermediate", yearsExperience: 2, description: "Cloud services including Cloud SQL and Firebase." },
+        { name: "DBDiagram.io", level: "advanced", yearsExperience: 2, description: "Database schema design and documentation." },
+        { name: "DBDesigner", level: "intermediate", yearsExperience: 1, description: "Visual database modeling tool." },
+        { name: "DrawSQL", level: "intermediate", yearsExperience: 1, description: "SQL diagram visualization tool." },
+      ],
+    },
+    {
+      category: "Development tools",
+      items: [
+        { name: "Git/GitHub", level: "expert", yearsExperience: 4, description: "Version control, branching strategies, and collaboration." },
+        { name: "Vercel", level: "advanced", yearsExperience: 2, description: "Deployment platform for frontend frameworks." },
+        { name: "Draw.io", level: "advanced", yearsExperience: 3, description: "Diagramming for system architecture and workflows." },
+        { name: "Jira", level: "intermediate", yearsExperience: 2, description: "Agile project management and issue tracking." },
+        { name: "Trello", level: "advanced", yearsExperience: 3, description: "Kanban-style task management." },
+        { name: "Webpack", level: "intermediate", yearsExperience: 2, description: "Module bundling and build optimization." },
+        { name: "JWT", level: "advanced", yearsExperience: 2, description: "JSON Web Tokens for authentication." },
+      ],
+    },
+    {
+      category: "Soft skills",
+      items: [
+        { name: "Adaptability", level: "expert", description: "Quick to adapt to new technologies and changing requirements." },
+        { name: "Effective communication", level: "expert", description: "Clear communication with technical and non-technical stakeholders." },
+        { name: "Time management", level: "advanced", description: "Efficient prioritization and deadline management." },
+        { name: "Team collaboration", level: "expert", description: "Strong teamwork in agile environments." },
+        { name: "Initiative", level: "advanced", description: "Proactive problem-solving and self-directed learning." },
+      ],
+    },
+    {
+      category: "Certifications",
+      items: [
+        { name: "Santander Project Management & Agile Fundamentals", level: "expert", description: "Certified in project management principles and agile methodologies including Scrum and Kanban." },
+      ],
+    },
+  ],
+  experience: [
+    {
+      id: "1",
+      title: "FANS (Friends of Arriving New Students)",
+      company: "University of Westminster",
+      location: "London, UK",
+      startDate: "September 2024",
+      endDate: "October 2024",
+      current: false,
+      description: "Volunteered as a peer mentor to support incoming students during their transition to university life. Organized orientation activities and provided guidance on academic and social aspects.",
+      bullets: [
+        "Took on a **leadership role** guiding **35 students** over **6 weeks**, organising 4 activities in the first week that promoted team building and fostered early connections.",
+        "Provided student support by responding to queries and signposting to relevant departments, leading to a **100% satisfaction rate** amongst students.",
+      ],
+    },
+    {
+      id: "2",
+      title: "Night Replenishment",
+      company: "Waitrose & Partners",
+      location: "London, UK",
+      startDate: "November 2024",
+      endDate: "",
+      current: true,
+      description: "Working as part of the night team to ensure shelves are fully stocked and the store is ready for customers each morning. Responsible for inventory management and maintaining store presentation.",
+      bullets: [
+        "Collaborated with a team of **16+ colleagues** to replenish stock and keep the shopfloor tidy, contributing to a positive shopping experience and maintaining efficient inventory management.",
+        "Paid close attention to detail and flagged damaged and almost expired products, contributing to the company's target of reducing food wastage by **50%**.",
+        "Demonstrated reliability, adaptability across different areas, and the ability to communicate in a fast-paced environment, earning a **One Step Beyond award** within 2 shifts.",
+      ],
+    },
+  ],
+  projects: [
+    {
+      id: "1",
+      name: "Personal Portfolio",
+      description: "A modern, responsive portfolio website showcasing my projects and skills. Built with performance and SEO best practices in mind.",
+      technologies: ["NextJS", "Tailwind CSS", "REST API"],
+      url: "https://github.com/m0ravat",
+      bullets: [
+        "Maintained and migrated codebase from vanilla HTML to **NextJS** for enhanced scalability, cleaner code, and custom REST API routes for optimised data handling.",
+        "Implemented **Tailwind CSS** and meta tags to enhance searchability and responsiveness, resulting in a **98/100 SEO** rating.",
+      ],
+    },
+    {
+      id: "2",
+      name: "MadrasahPro (Mosque Management System)",
+      description: "A comprehensive management system for Islamic educational institutions. Enables efficient tracking of student progress and teacher schedules.",
+      technologies: ["SpringBoot", "GraphQL", "MySQL", "Google Cloud Platform (GCP)"],
+      bullets: [
+        "Created a data-oriented MVP utilising **SpringBoot & GraphQL** on the backend for effective data handling by following modern principles.",
+        "Hosted a **MySQL** database on **Google Cloud Platform (GCP)** to store data surrounding the experiences of students, teachers and parents.",
+        "Leveraged **Agile's Scrum** methodology to streamline the process of development by **80%** through sprints, planning, and evaluation across the whole **Software Development Lifecycle**.",
+        "Rapidly prototyped the UI by leveraging **v0.dev** (AI model developed by Vercel) and referencing a similar website, speeding up the process by atleast **400%**.",
+      ],
+    },
+    {
+      id: "3",
+      name: "Sky Health Check System",
+      description: "A health monitoring application developed as part of a work-based learning project with Sky. Features comprehensive dashboards for tracking health metrics.",
+      technologies: ["Django", "Storyboards", "UX Principles", "Kanban", "Trello"],
+      bullets: [
+        "Led a team of **4 students** to deliver a **Django** project for a **work-based learning project** assigned by professionals at Sky, demonstrating technical and teamwork skills formally recognised with a **Certificate of Completion**.",
+        "Created low/high fidelity **wireframes** and used **storyboards** to design a comprehensive User Interface (UI) based on proven **User Experience (UX) principles** such as minimalism, scale, and visual hierarchy, receiving praise from industry professional.",
+        "Adopted the **Kanban** software methodology for flexible planning and execution, ensuring other modules and assessments were fully completed without interruption.",
+        "Facilitated regular team meetings, driving Trello engagement to **50%** and ensuring the timely completion of all deliverables.",
+      ],
+    },
+  ],
+  education: [
+    {
+      id: "1",
+      degree: "Software Engineering Bachelor of Engineering (BEng)",
+      institution: "University Of Westminster",
+      location: "London, UK",
+      startDate: "September 2023",
+      endDate: "June 2026",
+      grade: "First Class Honours (70%)",
+      expected: true,
+      description: "Studying software engineering with focus on full-stack development, software architecture, and agile methodologies.",
+    },
+  ],
+};
 
 const levelColors = {
   beginner: { bg: "bg-blue-100", text: "text-blue-700", progress: 25 },
@@ -489,10 +640,8 @@ function EducationDetailModal({
   );
 }
 
-export function UserCVProfile({ data, isOwnProfile = true, username, onEdit }: UserCVProfileProps) {
+export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit }: UserCVProfileProps) {
   const [copied, setCopied] = useState(false);
-  const [publicUserData, setPublicUserData] = useState<any>(null);
-  const [publicLoading, setPublicLoading] = useState(!!username);
   const [selectedSkill, setSelectedSkill] = useState<SkillItem | null>(null);
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -508,55 +657,11 @@ export function UserCVProfile({ data, isOwnProfile = true, username, onEdit }: U
   const [showEditProjectDialog, setShowEditProjectDialog] = useState(false);
   const [showEditCertificationDialog, setShowEditCertificationDialog] = useState(false);
   
-  // Fetch public user data if username is provided
-  useEffect(() => {
-    if (!username) return;
-    
-    const fetchPublicProfile = async () => {
-      try {
-        const response = await fetch(`/api/user/${username}`);
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to fetch profile');
-        }
-        const userData = await response.json();
-        setPublicUserData(userData);
-      } catch (error) {
-        console.error('[v0] Error fetching public profile:', error);
-      } finally {
-        setPublicLoading(false);
-      }
-    };
-
-    fetchPublicProfile();
-  }, [username]);
-  
   // Fetch real user data if this is own profile
   const { userData, loading, refetch } = useUser();
   
   // Use real data if available, NEVER fall back to hardcoded data for own profile
   const displayData = (() => {
-    // For public profile pages using username
-    if (username && publicUserData) {
-      const cv = publicUserData.cv;
-      const profile = publicUserData.profile;
-      
-      return {
-        name: `${profile.firstName} ${profile.lastName}`,
-        location: profile.location || "",
-        phone: profile.phone || "",
-        email: profile.email || "",
-        website: profile.personalWebsite || "",
-        github: "",
-        linkedin: profile.linkedinUrl || "",
-        aboutMe: profile.aboutMe || "",
-        skills: cv.skills?.length > 0 ? transformSkills(cv.skills) : [],
-        experience: cv.experiences?.length > 0 ? transformExperiences(cv.experiences) : [],
-        projects: cv.projects?.length > 0 ? transformProjects(cv.projects) : [],
-        education: cv.education?.length > 0 ? transformEducation(cv.education) : [],
-      };
-    }
-    
     if (isOwnProfile && userData) {
       // For own profile, ONLY use database data
       const cv = userData.cv;
@@ -578,21 +683,8 @@ export function UserCVProfile({ data, isOwnProfile = true, username, onEdit }: U
       };
     }
     
-    // For public profiles or when no data available, return empty
-    return {
-      name: "",
-      location: "",
-      phone: "",
-      email: "",
-      website: "",
-      github: "",
-      linkedin: "",
-      aboutMe: "",
-      skills: [],
-      experience: [],
-      projects: [],
-      education: [],
-    };
+    // For viewing other profiles, use the data prop
+    return data;
   })();
   
   // Get contact visibility preference from userData
