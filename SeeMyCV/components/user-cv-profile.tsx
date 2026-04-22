@@ -1268,9 +1268,9 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
                       >
                         {edu.institution}
                       </button>
-                      {(edu.target || edu.grade) && (
+                      {edu.gradeDescription && (
                         <span className="text-muted-foreground text-sm">
-                          — {edu.target || edu.grade}
+                          — {edu.gradeDescription}
                         </span>
                       )}
                     </div>
