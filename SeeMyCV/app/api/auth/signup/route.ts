@@ -17,6 +17,8 @@ export async function POST(req: NextRequest) {
       personalWebsite,
       isProfilePublic,
       isContactDetailsPublic,
+      isSearchable,
+      contactPublic,
       aboutMe,
       experience,
       skills,
@@ -84,10 +86,10 @@ export async function POST(req: NextRequest) {
 
       // 2. Insert profile
       const profileResult = await client.query(
-        `INSERT INTO profile (user_id, first_name, last_name, email, phone_number, person_location, linkedin_url, personal_website)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `INSERT INTO profile (user_id, first_name, last_name, email, phone_number, person_location, linkedin_url, personal_website, "isSearchable", "contactPublic")
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          RETURNING profile_id`,
-        [userId, firstName, lastName, email, phoneNumber || null, location || null, linkedInUrl || null, personalWebsite || null]
+        [userId, firstName, lastName, email, phoneNumber || null, location || null, linkedInUrl || null, personalWebsite || null, isSearchable || true, contactPublic || true]
       );
 
       const profileId = profileResult.rows[0].profile_id;
