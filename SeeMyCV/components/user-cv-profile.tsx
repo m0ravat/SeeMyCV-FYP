@@ -135,9 +135,11 @@ function transformProjects(dbProjects: any[]): Project[] {
   return dbProjects.map(proj => ({
     id: proj.project_id?.toString() || '',
     name: proj.title || '',
-    description: proj.summary || '',
+    description: proj.description || proj.summary || '',
     technologies: proj.skills ? proj.skills.split(',').map((s: string) => s.trim()) : [],
     url: proj.link,
+    startDate: proj.start_date,
+    endDate: proj.end_date,
     bullets: [],
   }));
 }
@@ -145,12 +147,14 @@ function transformProjects(dbProjects: any[]): Project[] {
 function transformEducation(dbEducation: any[]): Education[] {
   return dbEducation.map(edu => ({
     id: edu.education_id?.toString() || '',
-    degree: edu.institute_name || '',
+    degree: edu.institute_name || '', // Using institute_name as fallback since degree field doesn't exist
     institution: edu.institute_name || '',
     location: edu.location || '',
     startDate: edu.start_date || '',
     endDate: edu.end_date || '',
     grade: edu.achieved,
+    target: edu.target,
+    gradeDescription: edu.grade_description,
   }));
 }
 
@@ -511,7 +515,10 @@ export function UserCVProfile({ data, isOwnProfile = true, username, onEdit }: U
     const fetchPublicProfile = async () => {
       try {
         const response = await fetch(`/api/user/${username}`);
-        if (!response.ok) throw new Error('Failed to fetch profile');
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch profile');
+        }
         const userData = await response.json();
         setPublicUserData(userData);
       } catch (error) {
