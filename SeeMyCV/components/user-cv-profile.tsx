@@ -821,6 +821,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
       </Dialog>
 
       {/* Detail Modals */}
+      <SkillDetailModal
         isOpen={!!selectedSkill}
         onClose={() => setSelectedSkill(null)}
         skill={selectedSkill}
