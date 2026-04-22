@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     // Check if user already exists
     const userExists = await query(
-      'SELECT id FROM "user" WHERE username = $1 OR email = $2',
+      'SELECT user_id FROM "user" WHERE username = $1 OR email = $2',
       [username, email]
     );
 
@@ -41,23 +41,25 @@ export async function POST(req: NextRequest) {
     const result = await withTransaction(async (client) => {
       // Insert user
       const userResult = await client.query(
-        `INSERT INTO "user" (username, email, password, "isPremium", created_at, updated_at)
-         VALUES ($1, $2, $3, false, NOW(), NOW())
-         RETURNING id`,
+        `INSERT INTO "user" (username, email, password, "isPremium", created_at)
+         VALUES ($1, $2, $3, false, NOW())
+         RETURNING user_id`,
         [username, email, hashedPassword]
       );
 
-      const userId = userResult.rows[0].id;
+      const userId = userResult.rows[0].user_id;
 
       // Insert profile
       await client.query(
-        `INSERT INTO profile (user_id, name, email, phone_number, personal_website, location_url, created_at, updated_at)
-         VALUES ($1, $2, $3, NULL, NULL, NULL, NOW(), NOW())`,
-        [userId, `${firstName} ${lastName}`, email]
+        `INSERT INTO profile (user_id, first_name, last_name, email, phone_number, personal_website, person_location)
+         VALUES ($1, $2, $3, $4, NULL, NULL, NULL)`,
+        [userId, firstName, lastName, email]
       );
 
       return userId;
     });
+
+    console.log('[v0] User created successfully:', result);
 
     // Create session (in production, use secure HTTP-only cookies)
     return NextResponse.json(
@@ -69,7 +71,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Signup error:', error);
+    console.error('[v0] Signup error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

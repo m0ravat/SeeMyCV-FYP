@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
     // Find user by username
     const result = await query(
-      'SELECT id, username, email, password, "isPremium" FROM "user" WHERE username = $1',
+      'SELECT user_id, username, email, password, "isPremium" FROM "user" WHERE username = $1',
       [username]
     );
 
@@ -38,13 +38,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    console.log('[v0] Login successful for user:', user.user_id);
+
     // In production, create a secure session here (HTTP-only cookie, JWT, etc.)
     // For now, return user data
     return NextResponse.json(
       {
         success: true,
         user: {
-          id: user.id,
+          user_id: user.user_id,
           username: user.username,
           email: user.email,
           isPremium: user.isPremium,
@@ -53,7 +55,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('[v0] Login error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
