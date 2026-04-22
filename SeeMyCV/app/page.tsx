@@ -123,12 +123,12 @@ export default function LandingPage() {
             </nav>
 
             <div className="flex items-center gap-3">
-              <Link href="/dashboard">
+              <Link href="/login">
                 <Button variant="ghost" className="text-foreground">
                   Log in
                 </Button>
               </Link>
-              <Link href="/dashboard">
+              <Link href="/signup">
                 <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
                   Sign up
                 </Button>
