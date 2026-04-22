@@ -650,14 +650,8 @@ function EducationDetailModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-xl">
         <DialogHeader className="flex flex-row items-start justify-between space-y-0 pb-6">
-          <DialogTitle className="flex items-center gap-3 text-lg">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <GraduationCap className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <div>{education.degree}</div>
-              <div className="text-sm font-normal text-muted-foreground">{education.institution}</div>
-            </div>
+          <DialogTitle className="text-lg">
+            {education.institution}
           </DialogTitle>
           {isOwnProfile && (
             <div className="flex gap-2 ml-6 flex-shrink-0">
@@ -690,7 +684,7 @@ function EducationDetailModal({
             )}
           </div>
           {(education.grade || education.target || education.gradeDescription) && (
-            <div className="p-4 bg-accent/50 rounded-lg space-y-1">
+            <div className="space-y-1">
               {education.target && (
                 <p className="text-sm text-foreground">
                   <span className="font-medium">Target: </span>{education.target}
@@ -699,7 +693,7 @@ function EducationDetailModal({
               {education.grade && (
                 <p className="text-sm text-foreground">
                   <span className="font-medium">{education.expected ? "Expected Grade: " : "Achieved: "}</span>
-                  <span className="text-primary">{education.grade}</span>
+                  {education.grade}
                 </p>
               )}
               {education.gradeDescription && (
@@ -708,9 +702,7 @@ function EducationDetailModal({
             </div>
           )}
           {education.description && (
-            <div className="p-4 bg-muted rounded-lg">
-              <p className="text-sm text-foreground leading-relaxed">{education.description}</p>
-            </div>
+            <p className="text-sm text-foreground leading-relaxed">{education.description}</p>
           )}
         </div>
       </DialogContent>
@@ -1269,12 +1261,19 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
               ) : (
                 displayData.education.map((edu) => (
                   <div key={edu.id}>
-                    <button
-                      onClick={() => setSelectedEducation(edu)}
-                      className="font-bold text-primary hover:underline cursor-pointer text-left"
-                    >
-                      {edu.institution}
-                    </button>
+                    <div className="flex flex-wrap items-baseline gap-x-1">
+                      <button
+                        onClick={() => setSelectedEducation(edu)}
+                        className="font-bold text-primary hover:underline cursor-pointer text-left"
+                      >
+                        {edu.institution}
+                      </button>
+                      {(edu.target || edu.grade) && (
+                        <span className="text-muted-foreground text-sm">
+                          — {edu.target || edu.grade}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))
               )}
