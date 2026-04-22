@@ -270,7 +270,7 @@ export default function SignupPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // Call signup API
+      // Call signup API with all profile data
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -280,6 +280,19 @@ export default function SignupPage() {
           firstName: profileData.firstName,
           lastName: profileData.lastName,
           email: profileData.email,
+          phoneNumber: profileData.phoneNumber,
+          location: profileData.location,
+          linkedInUrl: profileData.linkedInUrl,
+          personalWebsite: profileData.personalWebsite,
+          isProfilePublic: profileData.isProfilePublic,
+          isContactDetailsPublic: profileData.isContactDetailsPublic,
+          aboutMe: profileData.aboutMe,
+          experience: profileData.experience,
+          skills: profileData.skills,
+          education: profileData.education,
+          projects: profileData.projects,
+          certifications: profileData.certifications,
+          isPremiumPlan: isPremiumPlan,
         }),
       });
 
