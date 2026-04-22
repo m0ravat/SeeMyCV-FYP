@@ -15,3 +15,117 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+model User {
+  user_id    Int       @id @default(autoincrement())
+  username   String    @unique
+  password   String
+  created_at DateTime  @default(now())
+  last_login DateTime?
+  isPremium  Boolean   @default(false)
+  profiles   Profile[]
+
+  @@map("user")
+}
+
+model Profile {
+  profile_id       Int     @id @default(autoincrement())
+  user_id          Int
+  first_name       String?
+  last_name        String?
+  email            String?
+  phone_number     String?
+  personal_website String?
+  linkedin_url     String?
+  person_location  String?
+  cvs              CV[]
+  user             User    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("profile")
+}
+
+model CV {
+  cv_id        Int             @id @default(autoincrement())
+  profile_id   Int
+  about_me     String?
+  profile      Profile         @relation(fields: [profile_id], references: [profile_id], onDelete: Cascade)
+  certifications Certification[]
+  education    Education[]
+  experience   Experience[]
+  projects     Project[]
+  skills       Skill[]
+
+  @@map("cv")
+}
+
+model Certification {
+  certification_id Int     @id @default(autoincrement())
+  cv_id            Int
+  title            String?
+  summary          String?
+  description      String?
+  skills           String?
+  institute        String?
+  link             String?
+  issue_date       DateTime?
+  expiry_date      DateTime?
+  cv               CV      @relation(fields: [cv_id], references: [cv_id], onDelete: Cascade)
+
+  @@map("certification")
+}
+
+model Education {
+  education_id      Int     @id @default(autoincrement())
+  cv_id             Int
+  institute_name    String?
+  grade_description String?
+  target            String?
+  achieved          String?
+  location          String?
+  start_date        DateTime?
+  end_date          DateTime?
+  cv                CV      @relation(fields: [cv_id], references: [cv_id], onDelete: Cascade)
+
+  @@map("education")
+}
+
+model Experience {
+  experience_id Int     @id @default(autoincrement())
+  cv_id         Int
+  title         String?
+  summary       String?
+  description   String?
+  key_skills    String?
+  location      String?
+  start_date    DateTime?
+  end_date      DateTime?
+  cv            CV      @relation(fields: [cv_id], references: [cv_id], onDelete: Cascade)
+
+  @@map("experience")
+}
+
+model Project {
+  project_id  Int     @id @default(autoincrement())
+  cv_id       Int
+  title       String?
+  summary     String?
+  description String?
+  skills      String?
+  link        String?
+  start_date  DateTime?
+  end_date    DateTime?
+  cv          CV      @relation(fields: [cv_id], references: [cv_id], onDelete: Cascade)
+
+  @@map("project")
+}
+
+model Skill {
+  skill_id     Int     @id @default(autoincrement())
+  cv_id        Int
+  name         String
+  description  String?
+  is_soft_skill Boolean @default(false)
+  cv           CV      @relation(fields: [cv_id], references: [cv_id], onDelete: Cascade)
+
+  @@map("skill")
+}

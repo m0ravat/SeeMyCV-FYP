@@ -29,8 +29,29 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate login - instant redirect for demo
-    router.push("/dashboard");
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "Login failed");
+        setIsLoading(false);
+        return;
+      }
+
+      // Redirect to dashboard on success
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("An error occurred during login");
+      setIsLoading(false);
+    }
   };
 
   return (

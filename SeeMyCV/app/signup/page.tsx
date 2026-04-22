@@ -265,8 +265,45 @@ export default function SignupPage() {
   const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate processing - instant redirect for demo
-    router.push("/dashboard");
+
+    try {
+      // First, create the user account
+      const signupResponse = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+      });
+
+      const signupData = await signupResponse.json();
+
+      if (!signupResponse.ok) {
+        alert(signupData.error || "Signup failed");
+        setIsLoading(false);
+        return;
+      }
+
+      // Then, automatically log them in
+      const loginResponse = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+      });
+
+      const loginData = await loginResponse.json();
+
+      if (!loginResponse.ok) {
+        alert("Account created but login failed. Please log in manually.");
+        router.push("/login");
+        return;
+      }
+
+      // Redirect to dashboard on success
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Signup error:", error);
+      alert("An error occurred during signup");
+      setIsLoading(false);
+    }
   };
 
   const benefits = [
