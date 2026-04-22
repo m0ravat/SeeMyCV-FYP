@@ -649,25 +649,29 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
   
   // Use real data if available, fallback to props or default
   const displayData = (() => {
-    if (!isOwnProfile || !userData) return data;
+    // If this is own profile, always use userData (don't fall back to data prop)
+    if (isOwnProfile && userData) {
+      const cv = userData.cv;
+      const profile = userData.profile;
+      
+      return {
+        name: `${profile.firstName} ${profile.lastName}`,
+        location: profile.location || "",
+        phone: profile.phoneNumber || "",
+        email: profile.email || "",
+        website: profile.personalWebsite || "",
+        github: "",
+        linkedin: profile.linkedinUrl || "",
+        aboutMe: profile.aboutMe || "",
+        skills: cv.skills?.length > 0 ? transformSkills(cv.skills) : [],
+        experience: cv.experiences?.length > 0 ? transformExperiences(cv.experiences) : [],
+        projects: cv.projects?.length > 0 ? transformProjects(cv.projects) : [],
+        education: cv.education?.length > 0 ? transformEducation(cv.education) : [],
+      };
+    }
     
-    const cv = userData.cv;
-    const profile = userData.profile;
-    
-    return {
-      name: `${profile.firstName} ${profile.lastName}`,
-      location: profile.location || data.location,
-      phone: profile.phone || data.phone,
-      email: profile.email || data.email,
-      website: profile.personalWebsite || data.website,
-      github: data.github,
-      linkedin: profile.linkedinUrl || data.linkedin,
-      aboutMe: profile.aboutMe || data.aboutMe,
-      skills: cv.skills?.length > 0 ? transformSkills(cv.skills) : data.skills,
-      experience: cv.experiences?.length > 0 ? transformExperiences(cv.experiences) : data.experience,
-      projects: cv.projects?.length > 0 ? transformProjects(cv.projects) : data.projects,
-      education: cv.education?.length > 0 ? transformEducation(cv.education) : data.education,
-    };
+    // For viewing other profiles, use the data prop
+    return data || defaultData;
   })();
   
   // Get contact visibility preference from userData
