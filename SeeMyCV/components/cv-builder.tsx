@@ -1042,32 +1042,14 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
           return (
             <Card key={cv.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <TemplateIcon className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">{cv.name}</CardTitle>
-                      <CardDescription className="text-xs">
-                        Modified {cv.lastModified}
-                      </CardDescription>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <TemplateIcon className="w-5 h-5 text-primary" />
                   </div>
-                  <Badge variant={cv.status === "published" ? "default" : "secondary"}>
-                    {cv.status}
-                  </Badge>
+                  <CardTitle className="text-base">{cv.name}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="pt-2">
-                {cv.status === "published" && (
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                    <span className="flex items-center gap-1">
-                      <TrendingUp className="w-4 h-4" />
-                      {cv.upvotes} upvotes
-                    </span>
-                  </div>
-                )}
                 <div className="flex items-center gap-2 mb-3">
                   <Button
                     variant="outline"
