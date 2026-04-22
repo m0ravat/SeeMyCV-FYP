@@ -145,6 +145,22 @@ const cvTemplates = [
     icon: GraduationCap,
     features: ["Qualifications display", "Teaching philosophy", "Student outcomes"],
   },
+  {
+    id: "entry-level-software-engineer",
+    name: "Entry Level Software Engineer",
+    description: "Premium format designed for new software engineers entering the field",
+    icon: Code,
+    features: ["Technical projects focus", "Programming skills showcase", "GitHub portfolio"],
+    isPremium: true,
+  },
+  {
+    id: "software-engineer-apprenticeship",
+    name: "Software Engineer Apprenticeship",
+    description: "Premium format tailored for apprenticeship programs and early-career roles",
+    icon: GraduationCap,
+    features: ["Learning highlights", "Apprenticeship structure", "Mentorship display"],
+    isPremium: true,
+  },
 ];
 
 const formSections = [
@@ -1052,19 +1068,14 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
                     </span>
                   </div>
                 )}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-3">
                   <Button
                     variant="outline"
                     size="sm"
                     className="flex-1 bg-transparent"
-                    onClick={() => setShowCVPreview(true)}
                   >
-                    <Eye className="w-4 h-4 mr-1" />
-                    View
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-                    <Pencil className="w-4 h-4 mr-1" />
-                    Edit
+                    <Download className="w-4 h-4 mr-1" />
+                    Download
                   </Button>
                   <Button
                     variant="ghost"
@@ -1078,7 +1089,7 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
 
                 {/* AI Feedback Button */}
                 <Button
-                  className="w-full mt-3 bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                   onClick={() => setShowAIFeedback(true)}
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
