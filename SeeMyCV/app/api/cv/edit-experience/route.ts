@@ -40,12 +40,15 @@ export async function PUT(req: Request) {
 
     const cvId = cvResult.rows[0].cv_id;
 
+    const toDateStr = (d: string | null | undefined) =>
+      d ? (d.length === 7 ? `${d}-01` : d) : null;
+
     // Update experience
     await query(
       `UPDATE experience 
        SET title = $1, summary = $2, location = $3, start_date = $4, end_date = $5, description = $6
        WHERE experience_id = $7 AND cv_id = $8`,
-      [title, company, location, startDate, endDate || null, description, id, cvId]
+      [title, company, location, toDateStr(startDate), toDateStr(endDate), description, id, cvId]
     );
 
     return NextResponse.json({ success: true });

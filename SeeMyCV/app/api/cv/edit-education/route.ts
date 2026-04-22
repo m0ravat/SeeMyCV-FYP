@@ -40,12 +40,15 @@ export async function PUT(req: Request) {
 
     const cvId = cvResult.rows[0].cv_id;
 
+    const toDateStr = (d: string | null | undefined) =>
+      d ? (d.length === 7 ? `${d}-01` : d) : null;
+
     // Update education
     await query(
       `UPDATE education 
        SET institute_name = $1, location = $2, start_date = $3, end_date = $4, target = $5, achieved = $6, grade_description = $7
        WHERE education_id = $8 AND cv_id = $9`,
-      [institution, location || null, startDate || null, endDate || null, target || null, achieved || null, gradeDescription || null, id, cvId]
+      [institution, location || null, toDateStr(startDate), toDateStr(endDate), target || null, achieved || null, gradeDescription || null, id, cvId]
     );
 
     return NextResponse.json({ success: true });
