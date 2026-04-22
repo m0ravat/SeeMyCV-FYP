@@ -8,12 +8,12 @@ export async function GET(
   try {
     const username = params.username;
 
-    // Fetch user by username
+    // Fetch user by username (case-insensitive)
     const userResult = await query(
       `SELECT u.user_id, u.username, p.profile_id
        FROM "user" u
        JOIN profile p ON u.user_id = p.user_id
-       WHERE u.username = $1`,
+       WHERE LOWER(u.username) = LOWER($1)`,
       [username]
     );
 
