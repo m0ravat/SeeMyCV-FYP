@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useUser } from "@/lib/use-user";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -93,6 +94,60 @@ interface UserCVProfileProps {
   data?: CVProfileData;
   isOwnProfile?: boolean;
   onEdit?: () => void;
+}
+
+// Helper functions to transform database data to component format
+function transformSkills(dbSkills: any[]): Skill[] {
+  const grouped: { [key: string]: SkillItem[] } = {};
+  
+  dbSkills.forEach(skill => {
+    const category = skill.is_soft_skill ? 'Soft Skills' : 'Technical Skills';
+    if (!grouped[category]) grouped[category] = [];
+    grouped[category].push({
+      name: skill.name,
+      level: skill.skill_level || 'intermediate',
+      description: skill.description,
+    });
+  });
+  
+  return Object.entries(grouped).map(([category, items]) => ({ category, items }));
+}
+
+function transformExperiences(dbExperiences: any[]): Experience[] {
+  return dbExperiences.map(exp => ({
+    id: exp.experience_id?.toString() || '',
+    title: exp.title || '',
+    company: exp.summary || '',
+    location: exp.location || '',
+    startDate: exp.start_date || '',
+    endDate: exp.end_date || '',
+    current: !exp.end_date,
+    description: exp.description || '',
+    bullets: [],
+  }));
+}
+
+function transformProjects(dbProjects: any[]): Project[] {
+  return dbProjects.map(proj => ({
+    id: proj.project_id?.toString() || '',
+    name: proj.title || '',
+    description: proj.summary || '',
+    technologies: proj.skills ? proj.skills.split(',').map((s: string) => s.trim()) : [],
+    url: proj.link,
+    bullets: [],
+  }));
+}
+
+function transformEducation(dbEducation: any[]): Education[] {
+  return dbEducation.map(edu => ({
+    id: edu.education_id?.toString() || '',
+    degree: edu.institute_name || '',
+    institution: edu.institute_name || '',
+    location: edu.location || '',
+    startDate: edu.start_date || '',
+    endDate: edu.end_date || '',
+    grade: edu.achieved,
+  }));
 }
 
 const defaultData: CVProfileData = {
@@ -588,6 +643,35 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedEducation, setSelectedEducation] = useState<Education | null>(null);
+  
+  // Fetch real user data if this is own profile
+  const { userData, loading } = useUser();
+  
+  // Use real data if available, fallback to props or default
+  const displayData = (() => {
+    if (!isOwnProfile || !userData) return data;
+    
+    const cv = userData.cv;
+    const profile = userData.profile;
+    
+    return {
+      name: `${profile.firstName} ${profile.lastName}`,
+      location: profile.location || data.location,
+      phone: profile.phone || data.phone,
+      email: profile.email || data.email,
+      website: profile.personalWebsite || data.website,
+      github: data.github,
+      linkedin: profile.linkedinUrl || data.linkedin,
+      aboutMe: profile.aboutMe || data.aboutMe,
+      skills: cv.skills?.length > 0 ? transformSkills(cv.skills) : data.skills,
+      experience: cv.experiences?.length > 0 ? transformExperiences(cv.experiences) : data.experience,
+      projects: cv.projects?.length > 0 ? transformProjects(cv.projects) : data.projects,
+      education: cv.education?.length > 0 ? transformEducation(cv.education) : data.education,
+    };
+  })();
+  
+  // Get contact visibility preference from userData
+  const contactPublic = userData?.profile?.contactPublic !== false;
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -708,20 +792,28 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
         <div className="bg-primary px-8 py-6 relative">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-primary-foreground tracking-tight">{data.name}</h1>
+              <h1 className="text-3xl font-bold text-primary-foreground tracking-tight">{displayData.name}</h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 text-sm text-primary-foreground/90">
-                <span>{data.location}</span>
-                <span className="text-primary-foreground/60">|</span>
-                <span>{data.phone}</span>
-                <span className="text-primary-foreground/60">|</span>
-                <a href={`mailto:${data.email}`} className="hover:underline">
-                  {data.email}
-                </a>
-                {data.website && (
+                {displayData.location && <span>{displayData.location}</span>}
+                {contactPublic && displayData.phone && (
                   <>
-                    <span className="text-primary-foreground/60">|</span>
-                    <a href={data.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                      {data.website.replace("https://", "")}
+                    {displayData.location && <span className="text-primary-foreground/60">|</span>}
+                    <span>{displayData.phone}</span>
+                  </>
+                )}
+                {contactPublic && displayData.email && (
+                  <>
+                    {(displayData.location || displayData.phone) && <span className="text-primary-foreground/60">|</span>}
+                    <a href={`mailto:${displayData.email}`} className="hover:underline">
+                      {displayData.email}
+                    </a>
+                  </>
+                )}
+                {displayData.website && (
+                  <>
+                    {(displayData.location || (contactPublic && displayData.phone) || (contactPublic && displayData.email)) && <span className="text-primary-foreground/60">|</span>}
+                    <a href={displayData.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                      {displayData.website.replace("https://", "")}
                     </a>
                   </>
                 )}
@@ -743,14 +835,14 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
         {/* CV Content */}
         <div className="px-8 py-6 space-y-5 text-foreground" style={{ fontSize: "10pt", lineHeight: "1.5" }}>
           {/* About Me Section */}
-          {data.aboutMe && (
+          {displayData.aboutMe && (
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <h2 className="text-base font-bold text-primary border-b-2 border-primary pb-1">
                   About Me
                 </h2>
               </div>
-              <p className="text-sm text-foreground leading-relaxed">{data.aboutMe}</p>
+              <p className="text-sm text-foreground leading-relaxed">{displayData.aboutMe}</p>
             </section>
           )}
 
@@ -775,7 +867,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
               )}
             </div>
             <div className="space-y-3">
-              {data.education.map((edu) => (
+              {displayData.education.map((edu) => (
                 <div key={edu.id}>
                   <div className="flex flex-wrap items-baseline gap-x-1">
                     <button
@@ -821,7 +913,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
               )}
             </div>
             <div className="space-y-4">
-              {data.experience.map((exp) => (
+              {displayData.experience.map((exp) => (
                 <div key={exp.id}>
                   <div className="flex flex-wrap items-baseline gap-x-1">
                     <span className="font-bold text-foreground">{exp.company}</span>
@@ -864,7 +956,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
               )}
             </div>
             <div className="space-y-1.5">
-              {data.skills.map((skillGroup) => (
+              {displayData.skills.map((skillGroup) => (
                 <div key={skillGroup.category}>
                   <span className="font-bold text-foreground">{skillGroup.category}</span>
                   <span className="text-foreground"> - </span>
