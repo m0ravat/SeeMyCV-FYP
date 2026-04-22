@@ -731,6 +731,7 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
   const [showEditEducationDialog, setShowEditEducationDialog] = useState(false);
   const [showEditProjectDialog, setShowEditProjectDialog] = useState(false);
   const [showEditCertificationDialog, setShowEditCertificationDialog] = useState(false);
+  const [showEditProfileDialog, setShowEditProfileDialog] = useState(false);
   
   // Fetch real user data if this is own profile
   const { userData, loading, refetch } = useUser();
@@ -1159,6 +1160,16 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
         </DialogContent>
       </Dialog>
 
+      {/* Edit Profile Dialog */}
+      {isOwnProfile && userData && (
+        <EditProfileDialog
+          open={showEditProfileDialog}
+          onOpenChange={setShowEditProfileDialog}
+          profile={userData.profile}
+          onSaved={refetch}
+        />
+      )}
+
       {/* Action Bar */}
       {isOwnProfile && (
         <div className="flex items-center justify-end gap-2 mb-4 print:hidden">
@@ -1216,7 +1227,7 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => console.log("Edit contact info")}
+                onClick={() => setShowEditProfileDialog(true)}
                 className="print:hidden text-primary-foreground hover:bg-primary-foreground/10 h-8 w-8 p-0 flex-shrink-0 ml-4"
               >
                 <Pencil className="w-4 h-4" />
@@ -1932,6 +1943,146 @@ function EditCertificationForm({ certification, onClose, onSuccess }: { certific
         </Button>
       </div>
     </form>
+  );
+}
+
+// Edit Profile Dialog
+function EditProfileDialog({
+  open,
+  onOpenChange,
+  profile,
+  onSaved,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  profile: any;
+  onSaved: () => void;
+}) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: profile.firstName || "",
+    lastName: profile.lastName || "",
+    email: profile.email || "",
+    phone: profile.phone || "",
+    location: profile.location || "",
+    linkedinUrl: profile.linkedinUrl || "",
+    personalWebsite: profile.personalWebsite || "",
+    aboutMe: profile.aboutMe || "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (!response.ok) throw new Error("Failed to update profile");
+      onSaved();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("[v0] Error updating profile:", error);
+      alert("Failed to save profile");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Edit Profile</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 py-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                required
+              />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="location">Location</Label>
+            <Input
+              id="location"
+              value={formData.location}
+              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
+            <Input
+              id="linkedinUrl"
+              type="url"
+              placeholder="https://linkedin.com/in/yourname"
+              value={formData.linkedinUrl}
+              onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="personalWebsite">Personal Website</Label>
+            <Input
+              id="personalWebsite"
+              type="url"
+              placeholder="https://yourwebsite.com"
+              value={formData.personalWebsite}
+              onChange={(e) => setFormData({ ...formData, personalWebsite: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="aboutMe">About Me</Label>
+            <Textarea
+              id="aboutMe"
+              rows={4}
+              value={formData.aboutMe}
+              onChange={(e) => setFormData({ ...formData, aboutMe: e.target.value })}
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Saving..." : "Save"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 

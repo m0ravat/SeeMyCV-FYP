@@ -2,6 +2,40 @@ import { verifySession } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
+export async function PATCH(request: Request) {
+  try {
+    const session = await verifySession();
+    if (!session) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const { firstName, lastName, email, phone, location, linkedinUrl, personalWebsite, aboutMe } = await request.json();
+
+    // Update profile table
+    await query(
+      `UPDATE profile
+       SET first_name = $1, last_name = $2, email = $3, phone_number = $4,
+           person_location = $5, linkedin_url = $6, personal_website = $7
+       WHERE user_id = $8`,
+      [firstName, lastName, email || null, phone || null, location || null, linkedinUrl || null, personalWebsite || null, session.userId]
+    );
+
+    // Update about_me in cv table
+    if (aboutMe !== undefined) {
+      await query(
+        `UPDATE cv SET about_me = $1
+         WHERE profile_id = (SELECT profile_id FROM profile WHERE user_id = $2)`,
+        [aboutMe, session.userId]
+      );
+    }
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    console.error('[v0] Error updating profile:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
 export async function GET() {
   try {
     // Get session from middleware
