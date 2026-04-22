@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { name, description, technologies, link, startDate, endDate } = await req.json();
+    const { name, summary, description, technologies, link, startDate, endDate } = await req.json();
 
     // Get user's CV
     const profileResult = await query(
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       `INSERT INTO project (cv_id, title, summary, description, skills, link, start_date, end_date)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING project_id`,
-      [cvId, name, description, description, techString, link || null, toDateStr(startDate), toDateStr(endDate)]
+      [cvId, name, summary || '', description || '', techString, link || null, toDateStr(startDate), toDateStr(endDate)]
     );
 
     return NextResponse.json({

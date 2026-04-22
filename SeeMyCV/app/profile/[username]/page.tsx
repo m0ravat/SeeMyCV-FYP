@@ -48,7 +48,8 @@ function transformProjects(dbProjects: any[]) {
   return dbProjects.map((proj) => ({
     id: proj.project_id?.toString() || "",
     name: proj.title || "",
-    description: proj.description || proj.summary || "",
+    summary: proj.summary || "",
+    description: proj.description || "",
     technologies: proj.skills
       ? proj.skills.split(",").map((s: string) => s.trim()).filter(Boolean)
       : [],

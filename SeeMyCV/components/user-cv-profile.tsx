@@ -60,6 +60,7 @@ interface Experience {
 interface Project {
   id: string;
   name: string;
+  summary: string;
   description: string;
   technologies: string[];
   url?: string;
@@ -157,7 +158,8 @@ function transformProjects(dbProjects: any[]): Project[] {
   return dbProjects.map(proj => ({
     id: proj.project_id?.toString() || '',
     name: proj.title || '',
-    description: proj.description || proj.summary || '',
+    summary: proj.summary || '',
+    description: proj.description || '',
     technologies: proj.skills ? proj.skills.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
     url: proj.link || '',
     startDate: formatDate(proj.start_date),
@@ -1398,12 +1400,17 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
               ) : (
                 displayData.projects.map((proj) => (
                   <div key={proj.id}>
-                    <button
-                      onClick={() => setSelectedProject(proj)}
-                      className="font-bold text-primary hover:underline cursor-pointer text-left"
-                    >
-                      {proj.name}
-                    </button>
+                    <div className="flex flex-wrap items-baseline gap-x-1">
+                      <button
+                        onClick={() => setSelectedProject(proj)}
+                        className="font-bold text-primary hover:underline cursor-pointer text-left"
+                      >
+                        {proj.name}
+                      </button>
+                      {proj.summary && (
+                        <span className="text-muted-foreground text-sm">— {proj.summary}</span>
+                      )}
+                    </div>
                   </div>
                 ))
               )}
@@ -2243,6 +2250,7 @@ function AddProjectForm({ onClose, onSuccess }: { onClose: () => void; onSuccess
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    summary: "",
     description: "",
     technologies: "",
     link: "",
@@ -2260,7 +2268,7 @@ function AddProjectForm({ onClose, onSuccess }: { onClose: () => void; onSuccess
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          technologies: formData.technologies.split(",").map((t) => t.trim()),
+          technologies: formData.technologies.split(",").map((t) => t.trim()).filter(Boolean),
         }),
       });
 
@@ -2286,13 +2294,23 @@ function AddProjectForm({ onClose, onSuccess }: { onClose: () => void; onSuccess
         />
       </div>
       <div>
+        <Label htmlFor="summary">Summary</Label>
+        <Input
+          id="summary"
+          placeholder="One-line overview shown in the profile"
+          value={formData.summary}
+          onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+          required
+        />
+      </div>
+      <div>
         <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
+          placeholder="Full details shown when the project is opened"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={4}
-          required
         />
       </div>
       <div>
