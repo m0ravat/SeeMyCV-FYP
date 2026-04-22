@@ -1099,44 +1099,75 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
 
       {/* Template Selector Dialog */}
       <Dialog open={showTemplateSelector} onOpenChange={setShowTemplateSelector}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Choose a CV Template</DialogTitle>
             <DialogDescription>
               Select a template that best fits your industry and experience level
             </DialogDescription>
           </DialogHeader>
-          <div className="grid md:grid-cols-2 gap-4 py-4">
-            {cvTemplates.map((template) => (
-              <Card
-                key={template.id}
-                className="cursor-pointer hover:border-primary hover:shadow-md transition-all"
-                onClick={() => handleUseTemplate(template.id)}
-              >
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <template.icon className="w-6 h-6 text-primary" />
+          <ScrollArea className="flex-1 pr-4">
+            <div className="grid md:grid-cols-2 gap-4 py-4">
+              {cvTemplates.map((template) => (
+                <Card
+                  key={template.id}
+                  className={`cursor-pointer transition-all ${
+                    template.isPremium
+                      ? "border-orange-500 hover:border-orange-600 hover:shadow-md hover:shadow-orange-200 bg-gradient-to-br from-orange-50 to-transparent"
+                      : "hover:border-primary hover:shadow-md"
+                  }`}
+                  onClick={() => handleUseTemplate(template.id)}
+                >
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`p-2 rounded-lg ${
+                          template.isPremium
+                            ? "bg-orange-100"
+                            : "bg-primary/10"
+                        }`}
+                      >
+                        <template.icon
+                          className={`w-6 h-6 ${
+                            template.isPremium
+                              ? "text-orange-600"
+                              : "text-primary"
+                          }`}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <CardTitle className="text-base">{template.name}</CardTitle>
+                          {template.isPremium && (
+                            <Badge className="bg-orange-600 hover:bg-orange-700 text-white text-xs">
+                              Premium
+                            </Badge>
+                          )}
+                        </div>
+                        <CardDescription className="text-xs">{template.description}</CardDescription>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-base">{template.name}</CardTitle>
-                      <CardDescription className="text-xs">{template.description}</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-1">
-                    {template.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Check className="w-4 h-4 text-accent" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-1">
+                      {template.features.map((feature) => (
+                        <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check
+                            className={`w-4 h-4 ${
+                              template.isPremium
+                                ? "text-orange-600"
+                                : "text-accent"
+                            }`}
+                          />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
