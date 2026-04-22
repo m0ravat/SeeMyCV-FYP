@@ -23,13 +23,26 @@ export async function POST(req: NextRequest) {
 
     // Check if user already exists
     const userExists = await query(
-      'SELECT user_id FROM "user" WHERE username = $1 OR email = $2',
-      [username, email]
+      'SELECT user_id FROM "user" WHERE username = $1',
+      [username]
     );
 
     if (userExists.rows.length > 0) {
       return NextResponse.json(
-        { error: 'Username or email already exists' },
+        { error: 'Username already exists' },
+        { status: 409 }
+      );
+    }
+
+    // Check if email already exists in profile
+    const emailExists = await query(
+      'SELECT profile_id FROM profile WHERE email = $1',
+      [email]
+    );
+
+    if (emailExists.rows.length > 0) {
+      return NextResponse.json(
+        { error: 'Email already exists' },
         { status: 409 }
       );
     }
@@ -39,20 +52,20 @@ export async function POST(req: NextRequest) {
 
     // Create user and profile in a transaction
     const result = await withTransaction(async (client) => {
-      // Insert user
+      // Insert user (email goes into profile, not user table)
       const userResult = await client.query(
-        `INSERT INTO "user" (username, email, password, "isPremium", created_at)
-         VALUES ($1, $2, $3, false, NOW())
+        `INSERT INTO "user" (username, password, "isPremium", created_at)
+         VALUES ($1, $2, false, NOW())
          RETURNING user_id`,
-        [username, email, hashedPassword]
+        [username, hashedPassword]
       );
 
       const userId = userResult.rows[0].user_id;
 
-      // Insert profile
+      // Insert profile with email
       await client.query(
-        `INSERT INTO profile (user_id, first_name, last_name, email, phone_number, personal_website, person_location)
-         VALUES ($1, $2, $3, $4, NULL, NULL, NULL)`,
+        `INSERT INTO profile (user_id, first_name, last_name, email)
+         VALUES ($1, $2, $3, $4)`,
         [userId, firstName, lastName, email]
       );
 

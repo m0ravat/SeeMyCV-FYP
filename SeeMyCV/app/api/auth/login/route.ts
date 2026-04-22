@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
     // Find user by username
     const result = await query(
-      'SELECT user_id, username, email, password, "isPremium" FROM "user" WHERE username = $1',
+      'SELECT user_id, username, password, "isPremium" FROM "user" WHERE username = $1',
       [username]
     );
 
@@ -38,6 +38,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Get user email from profile table
+    const profileResult = await query(
+      'SELECT email FROM profile WHERE user_id = $1',
+      [user.user_id]
+    );
+
+    const userEmail = profileResult.rows[0]?.email || null;
+
     console.log('[v0] Login successful for user:', user.user_id);
 
     // In production, create a secure session here (HTTP-only cookie, JWT, etc.)
@@ -48,7 +56,7 @@ export async function POST(req: NextRequest) {
         user: {
           user_id: user.user_id,
           username: user.username,
-          email: user.email,
+          email: userEmail,
           isPremium: user.isPremium,
         },
       },
