@@ -1198,29 +1198,28 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-primary-foreground tracking-tight">{displayData.name}</h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 text-sm text-primary-foreground/90">
-                {displayData.location && <span>{displayData.location}</span>}
-                {contactPublic && displayData.phone && (
-                  <>
-                    {displayData.location && <span className="text-primary-foreground/60">|</span>}
-                    <span>{displayData.phone}</span>
-                  </>
-                )}
-                {contactPublic && displayData.email && (
-                  <>
-                    {(displayData.location || displayData.phone) && <span className="text-primary-foreground/60">|</span>}
-                    <a href={`mailto:${displayData.email}`} className="hover:underline">
-                      {displayData.email}
+                {(() => {
+                  const showContact = isOwnProfile || contactPublic;
+                  const items: React.ReactNode[] = [];
+                  if (displayData.location) items.push(<span key="loc">{displayData.location}</span>);
+                  if (showContact && displayData.phone) items.push(<span key="phone">{displayData.phone}</span>);
+                  if (showContact && displayData.email) items.push(
+                    <a key="email" href={`mailto:${displayData.email}`} className="hover:underline">{displayData.email}</a>
+                  );
+                  if (displayData.linkedin) items.push(
+                    <a key="linkedin" href={displayData.linkedin} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                      {displayData.linkedin.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, "").replace(/\/$/, "")}
                     </a>
-                  </>
-                )}
-                {displayData.website && (
-                  <>
-                    {(displayData.location || (contactPublic && displayData.phone) || (contactPublic && displayData.email)) && <span className="text-primary-foreground/60">|</span>}
-                    <a href={displayData.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                      {displayData.website.replace("https://", "")}
+                  );
+                  if (displayData.website) items.push(
+                    <a key="website" href={displayData.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                      {displayData.website.replace(/https?:\/\//, "")}
                     </a>
-                  </>
-                )}
+                  );
+                  return items.flatMap((item, i) =>
+                    i === 0 ? [item] : [<span key={`sep-${i}`} className="text-primary-foreground/60">|</span>, item]
+                  );
+                })()}
               </div>
             </div>
             {isOwnProfile && (
