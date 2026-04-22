@@ -745,7 +745,7 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
       return {
         name: `${profile.firstName} ${profile.lastName}`,
         location: profile.location || "",
-        phone: profile.phoneNumber || "",
+        phone: profile.phone || "",
         email: profile.email || "",
         website: profile.personalWebsite || "",
         github: "",
