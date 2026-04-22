@@ -765,7 +765,11 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
   const contactPublic = userData?.profile?.contactPublic !== false;
 
   const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
+    const username = userData?.user?.username;
+    const url = username
+      ? `${window.location.origin}/profile/${username}`
+      : window.location.href;
+    navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
