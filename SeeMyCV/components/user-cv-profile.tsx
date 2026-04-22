@@ -1254,38 +1254,12 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
               ) : (
                 displayData.education.map((edu) => (
                   <div key={edu.id}>
-                    <div className="flex flex-wrap items-baseline gap-x-1">
-                      <button
-                        onClick={() => setSelectedEducation(edu)}
-                        className="font-bold text-primary hover:underline cursor-pointer"
-                      >
-                        {edu.institution}
-                      </button>
-                      {edu.degree && edu.degree !== edu.institution && (
-                        <>
-                          <span className="text-foreground">-</span>
-                          <span className="text-foreground">{edu.degree}</span>
-                        </>
-                      )}
-                    </div>
-                    {(edu.startDate || edu.endDate) && (
-                      <p className="text-muted-foreground text-xs mt-0.5">
-                        {edu.startDate}{edu.startDate && edu.endDate ? " - " : ""}{edu.endDate}
-                      </p>
-                    )}
-                    {edu.grade && (
-                      <p className="text-foreground text-sm mt-0.5">
-                        <span className="font-medium">{edu.expected ? "Expected" : "Grade"}:</span> {edu.grade}
-                      </p>
-                    )}
-                    {edu.target && (
-                      <p className="text-foreground text-sm mt-0.5">
-                        <span className="font-medium">Target:</span> {edu.target}
-                      </p>
-                    )}
-                    {edu.gradeDescription && (
-                      <p className="text-muted-foreground text-xs mt-0.5">{edu.gradeDescription}</p>
-                    )}
+                    <button
+                      onClick={() => setSelectedEducation(edu)}
+                      className="font-bold text-primary hover:underline cursor-pointer text-left"
+                    >
+                      {edu.institution}
+                    </button>
                   </div>
                 ))
               )}
@@ -1320,11 +1294,9 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
                   <div key={exp.id}>
                     <div className="flex flex-wrap items-baseline gap-x-1">
                       {exp.company && (
-                        <>
-                          <span className="font-bold text-foreground">{exp.company}</span>
-                          <span className="text-foreground">-</span>
-                        </>
+                        <span className="font-semibold text-foreground">{exp.company}</span>
                       )}
+                      {exp.company && <span className="text-muted-foreground">-</span>}
                       <button
                         onClick={() => setSelectedExperience(exp)}
                         className="font-bold text-primary hover:underline cursor-pointer"
@@ -1332,14 +1304,6 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
                         {exp.title}
                       </button>
                     </div>
-                    {(exp.startDate || exp.endDate) && (
-                      <p className="text-muted-foreground text-xs mt-0.5">
-                        {exp.startDate}{exp.startDate ? " - " : ""}{exp.current ? "Present" : exp.endDate}
-                      </p>
-                    )}
-                    {exp.description && (
-                      <p className="text-foreground mt-1 text-sm">{exp.description}</p>
-                    )}
                   </div>
                 ))
               )}
@@ -1420,34 +1384,12 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
               ) : (
                 displayData.projects.map((proj) => (
                   <div key={proj.id}>
-                    <div className="flex flex-wrap items-baseline gap-x-1">
-                      <button
-                        onClick={() => setSelectedProject(proj)}
-                        className="font-bold text-primary hover:underline cursor-pointer"
-                      >
-                        {proj.name}
-                      </button>
-                      {proj.url && (
-                        <a
-                          href={proj.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline text-sm"
-                        >
-                          <ExternalLink className="w-3 h-3 inline" />
-                        </a>
-                      )}
-                    </div>
-                    <p className="text-foreground text-sm mt-1">{proj.description}</p>
-                    {proj.technologies.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {proj.technologies.map((tech) => (
-                          <Badge key={tech} variant="secondary" className="text-xs">
-                            {tech}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
+                    <button
+                      onClick={() => setSelectedProject(proj)}
+                      className="font-bold text-primary hover:underline cursor-pointer text-left"
+                    >
+                      {proj.name}
+                    </button>
                   </div>
                 ))
               )}
@@ -1475,35 +1417,21 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
               )}
             </div>
             {displayData.certifications && displayData.certifications.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {displayData.certifications.map((cert) => (
-                  <div
-                    key={cert.id}
-                    className="p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => setSelectedCertification(cert)}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm text-foreground truncate">{cert.name}</p>
-                        <p className="text-xs text-muted-foreground">{cert.issuer}</p>
-                        {cert.date && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Issued: {cert.date}{cert.expiryDate ? ` · Expires: ${cert.expiryDate}` : ""}
-                          </p>
-                        )}
-                      </div>
-                      <Badge variant="outline" className="text-xs shrink-0">CERT</Badge>
+                  <div key={cert.id}>
+                    <div className="flex flex-wrap items-baseline gap-x-1">
+                      {cert.issuer && (
+                        <span className="font-semibold text-foreground">{cert.issuer}</span>
+                      )}
+                      {cert.issuer && <span className="text-muted-foreground">-</span>}
+                      <button
+                        onClick={() => setSelectedCertification(cert)}
+                        className="font-bold text-primary hover:underline cursor-pointer"
+                      >
+                        {cert.name}
+                      </button>
                     </div>
-                    {cert.description && (
-                      <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{cert.description}</p>
-                    )}
-                    {cert.skills && cert.skills.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {cert.skills.map((s) => (
-                          <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
