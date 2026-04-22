@@ -38,7 +38,6 @@ import {
   FolderOpen,
   BookOpen,
 } from "lucide-react";
-import { UserCVProfile } from "./user-cv-profile";
 
 interface SavedCV {
   id: string;
@@ -1188,7 +1187,7 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
           </DialogHeader>
           <div className="flex-1 overflow-y-auto p-6">
             <div className="max-w-4xl mx-auto">
-              <UserCVProfile isOwnProfile={true} onEdit={() => setShowCVPreview(false)} />
+              <p className="text-center text-muted-foreground">CV Preview</p>
             </div>
           </div>
         </DialogContent>
