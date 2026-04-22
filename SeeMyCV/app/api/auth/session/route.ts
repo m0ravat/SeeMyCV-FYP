@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
-import { prisma } from '@/lib/prisma';
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
 export async function GET(request: NextRequest) {
+  const client = await pool.connect();
+
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('auth-token')?.value;
@@ -25,23 +31,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Get full user data
-    const user = await prisma.user.findUnique({
-      where: { user_id: payload.userId },
-      select: {
-        user_id: true,
-        username: true,
-        isPremium: true,
-        created_at: true,
-        last_login: true,
-      },
-    });
+    const userResult = await client.query(
+      'SELECT user_id, username, "isPremium", created_at, last_login FROM "user" WHERE user_id = $1',
+      [payload.userId]
+    );
 
-    if (!user) {
+    if (userResult.rows.length === 0) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       );
     }
+
+    const user = userResult.rows[0];
 
     return NextResponse.json(user, { status: 200 });
   } catch (error) {
@@ -50,5 +52,7 @@ export async function GET(request: NextRequest) {
       { error: 'Internal server error' },
       { status: 500 }
     );
+  } finally {
+    client.release();
   }
 }

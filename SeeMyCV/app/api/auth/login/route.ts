@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { verifyPassword } from '@/lib/auth';
+import { compare } from 'bcrypt';
 import { createToken } from '@/lib/jwt';
 import { cookies } from 'next/headers';
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
 export async function POST(request: NextRequest) {
+  const client = await pool.connect();
+
   try {
     const { username, password } = await request.json();
 
@@ -17,19 +23,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user
-    const user = await prisma.user.findUnique({
-      where: { username },
-    });
+    const userResult = await client.query(
+      'SELECT user_id, username, password, "isPremium" FROM "user" WHERE username = $1',
+      [username]
+    );
 
-    if (!user) {
+    if (userResult.rows.length === 0) {
       return NextResponse.json(
         { error: 'Invalid username or password' },
         { status: 401 }
       );
     }
 
+    const user = userResult.rows[0];
+
     // Verify password
-    const isPasswordValid = await verifyPassword(password, user.password);
+    const isPasswordValid = await compare(password, user.password);
 
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -39,10 +48,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Update last login
-    await prisma.user.update({
-      where: { user_id: user.user_id },
-      data: { last_login: new Date() },
-    });
+    await client.query(
+      'UPDATE "user" SET last_login = NOW() WHERE user_id = $1',
+      [user.user_id]
+    );
 
     // Create JWT token
     const token = await createToken({
@@ -75,5 +84,7 @@ export async function POST(request: NextRequest) {
       { error: 'Internal server error' },
       { status: 500 }
     );
+  } finally {
+    client.release();
   }
 }
