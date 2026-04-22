@@ -38,6 +38,7 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
   const navItems: Array<{ id: string; label: string; icon: typeof Home; href: string | null; badge?: number }> = [
     { id: "feed", label: "Feed", icon: Home, href: null },
     { id: "my-cvs", label: "My CVs", icon: FileText, href: null },
+    {id: "blog", label: "Blogs", icon: Home, href: null}
   ];
 
   return (
@@ -61,7 +62,7 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search CVs, skills, industries..."
+                placeholder="Search for other Users"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 w-64 lg:w-80 bg-secondary border-border"
@@ -132,11 +133,6 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
               </Button>
             )}
 
-            {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
-            </Button>
 
             {/* User Menu */}
             <DropdownMenu>
@@ -165,12 +161,6 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
                     Settings
                   </Link>
                 </DropdownMenuItem>
-                {!isPremium && (
-                  <DropdownMenuItem onClick={() => onNavigate("premium")}>
-                    <Crown className="w-4 h-4 mr-2" />
-                    Upgrade to Premium
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-destructive">
                   <LogOut className="w-4 h-4 mr-2" />

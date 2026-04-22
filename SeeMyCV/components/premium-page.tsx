@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import {
   Crown,
   Check,
@@ -29,19 +26,14 @@ interface PremiumPageProps {
 }
 
 export function PremiumPage({ onSubscribe }: PremiumPageProps) {
-  const [isAnnual, setIsAnnual] = useState(false);
-
-  const monthlyPrice = 5;
-  const annualPrice = 48; // £4/month billed annually
-  const currentPrice = isAnnual ? annualPrice : monthlyPrice;
-  const savings = isAnnual ? (monthlyPrice * 12 - annualPrice) : 0;
+  const oneTimePrice = 20;
 
   const features = [
     {
       icon: FileText,
-      title: "Unlimited CV Slots",
-      description: "Create and manage unlimited CVs for different roles and industries",
-      free: "2 CV slots",
+      title: "Unlimited CV Formats",
+      description: "Create and manage unlimited CV formats for different roles and industries",
+      free: "Basic CV Formats",
       premium: "Unlimited",
     },
     {
@@ -50,20 +42,6 @@ export function PremiumPage({ onSubscribe }: PremiumPageProps) {
       description: "Get detailed AI analysis and suggestions to improve your CV",
       free: "Not available",
       premium: "Unlimited reports",
-    },
-    {
-      icon: Zap,
-      title: "Priority Support",
-      description: "Get faster responses and dedicated support for your questions",
-      free: "Standard support",
-      premium: "Priority queue",
-    },
-    {
-      icon: Shield,
-      title: "Advanced Privacy",
-      description: "Enhanced privacy controls and profile visibility options",
-      free: "Basic controls",
-      premium: "Full control",
     },
     {
       icon: Star,
@@ -94,24 +72,16 @@ export function PremiumPage({ onSubscribe }: PremiumPageProps) {
 
   const faqs = [
     {
-      question: "Can I cancel my subscription anytime?",
-      answer: "Yes, you can cancel your subscription at any time. You'll continue to have access to premium features until the end of your billing period.",
-    },
-    {
       question: "What payment methods do you accept?",
       answer: "We accept all major credit cards, debit cards, and PayPal. All payments are securely processed.",
     },
     {
       question: "Is there a free trial available?",
-      answer: "We offer a 7-day free trial for new users. You can explore all premium features before committing to a subscription.",
-    },
-    {
-      question: "What happens to my CVs if I downgrade?",
-      answer: "Your CVs will remain saved, but you'll only be able to edit your 2 most recent ones. AI feedback reports will also be preserved.",
+      answer: "Sadly the app doesn't have a free trial feature available, but it's a consideration for future updates.",
     },
     {
       question: "Can I get a refund?",
-      answer: "We offer a 14-day money-back guarantee. If you're not satisfied, contact support for a full refund.",
+      answer: "Sadly our app isn't configured to process refunds, you can get in touch with our support team to do it via email. ",
     },
   ];
 
@@ -134,20 +104,10 @@ export function PremiumPage({ onSubscribe }: PremiumPageProps) {
 
       {/* Pricing Toggle */}
       <div className="flex items-center justify-center gap-4 mb-8">
-        <Label htmlFor="billing-toggle" className={!isAnnual ? "text-foreground font-medium" : "text-muted-foreground"}>
-          Monthly
-        </Label>
-        <Switch
-          id="billing-toggle"
-          checked={isAnnual}
-          onCheckedChange={setIsAnnual}
-        />
-        <Label htmlFor="billing-toggle" className={isAnnual ? "text-foreground font-medium" : "text-muted-foreground"}>
-          Annual
-          <Badge variant="secondary" className="ml-2 bg-success/10 text-success">
-            Save £{savings}
-          </Badge>
-        </Label>
+        <Badge className="bg-success text-success-foreground">
+          <Sparkles className="w-3 h-3 mr-2" />
+          One-Time Purchase
+        </Badge>
       </div>
 
       {/* Pricing Cards */}
@@ -218,15 +178,8 @@ export function PremiumPage({ onSubscribe }: PremiumPageProps) {
           </CardHeader>
           <CardContent>
             <div className="mb-6">
-              <span className="text-4xl font-bold text-foreground">
-                £{isAnnual ? Math.round(annualPrice / 12) : monthlyPrice}
-              </span>
-              <span className="text-muted-foreground">/month</span>
-              {isAnnual && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  Billed annually (£{annualPrice}/year)
-                </p>
-              )}
+              <span className="text-4xl font-bold text-foreground">£{oneTimePrice}</span>
+              <span className="text-muted-foreground"> one-time</span>
             </div>
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-sm">
@@ -239,19 +192,11 @@ export function PremiumPage({ onSubscribe }: PremiumPageProps) {
               </li>
               <li className="flex items-center gap-2 text-sm">
                 <Check className="w-4 h-4 text-premium" />
-                <span className="text-foreground">Advanced profile customization</span>
-              </li>
-              <li className="flex items-center gap-2 text-sm">
-                <Check className="w-4 h-4 text-premium" />
-                <span className="text-foreground">Priority support</span>
+                <span className="text-foreground">Refund support</span>
               </li>
               <li className="flex items-center gap-2 text-sm">
                 <Check className="w-4 h-4 text-premium" />
                 <span className="text-foreground">Premium profile badge</span>
-              </li>
-              <li className="flex items-center gap-2 text-sm">
-                <Check className="w-4 h-4 text-premium" />
-                <span className="text-foreground">Enhanced privacy controls</span>
               </li>
             </ul>
           </CardContent>
@@ -347,32 +292,6 @@ export function PremiumPage({ onSubscribe }: PremiumPageProps) {
             </AccordionItem>
           ))}
         </Accordion>
-      </div>
-
-      {/* CTA */}
-      <div className="mt-16 text-center">
-        <Card className="max-w-2xl mx-auto bg-gradient-to-br from-premium/10 to-primary/10 border-premium/20">
-          <CardContent className="py-8">
-            <Crown className="w-12 h-12 mx-auto text-premium mb-4" />
-            <h3 className="text-2xl font-bold text-foreground mb-2">
-              Ready to stand out?
-            </h3>
-            <p className="text-muted-foreground mb-6">
-              Join thousands of professionals who have upgraded their job search with CVConnect Premium.
-            </p>
-            <Button
-              size="lg"
-              className="bg-premium text-premium-foreground hover:bg-premium/90"
-              onClick={onSubscribe}
-            >
-              Start Your Free Trial
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <p className="text-sm text-muted-foreground mt-4">
-              7-day free trial. Cancel anytime.
-            </p>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

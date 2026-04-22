@@ -15,6 +15,9 @@ import {
   Award,
   BookOpen,
   ThumbsUp,
+  Briefcase,
+  Code,
+  GraduationCap,
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -57,13 +60,12 @@ export default function LandingPage() {
     },
   ];
 
-  const stats = [
-    { value: "50K+", label: "Active Users" },
-    { value: "120K+", label: "CVs Created" },
-    { value: "85%", label: "Success Rate" },
-    { value: "500+", label: "Companies Hiring" },
+  const cvTemplates = [
+    { name: "Entry-Level", description: "Perfect for graduates and career starters", icon: BookOpen },
+    { name: "Customer Service", description: "Skills-focused for service roles", icon: Users },
+    { name: "Tech & IT", description: "Highlight technical skills and projects", icon: Code },
+    { name: "Teaching", description: "Showcase education expertise", icon: GraduationCap },
   ];
-
   const testimonials = [
     {
       name: "Sarah M.",
@@ -91,12 +93,6 @@ export default function LandingPage() {
     },
   ];
 
-  const cvTemplates = [
-    { name: "Entry-Level", description: "Perfect for graduates and career starters" },
-    { name: "Customer Service", description: "Skills-focused for service roles" },
-    { name: "Tech & IT", description: "Highlight technical skills and projects" },
-    { name: "Teaching", description: "Showcase education expertise" },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -230,19 +226,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-card border-y border-border">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-primary mb-2">{stat.value}</div>
-                <div className="text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Features Section */}
       <section id="features" className="py-20 px-4">
@@ -289,18 +272,21 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {cvTemplates.map((template) => (
-              <div
-                key={template.name}
-                className="bg-background rounded-xl border border-border p-6 hover:shadow-lg transition-shadow"
-              >
-                <div className="aspect-[3/4] bg-muted rounded-lg mb-4 flex items-center justify-center">
-                  <FileText className="w-16 h-16 text-muted-foreground/50" />
+            {cvTemplates.map((template) => {
+              const TemplateIcon = template.icon;
+              return (
+                <div
+                  key={template.name}
+                  className="bg-background rounded-xl border border-border p-6 hover:shadow-lg transition-shadow"
+                >
+                  <div className="aspect-[3/4] bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg mb-4 flex items-center justify-center">
+                    <TemplateIcon className="w-16 h-16 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-1">{template.name}</h3>
+                  <p className="text-sm text-muted-foreground">{template.description}</p>
                 </div>
-                <h3 className="font-semibold text-foreground mb-1">{template.name}</h3>
-                <p className="text-sm text-muted-foreground">{template.description}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -370,11 +356,10 @@ export default function LandingPage() {
               </div>
               <ul className="space-y-4 mb-8">
                 {[
-                  "1 CV creation slot",
-                  "Access to all templates",
+                  "Basic CV formats",
+                  "Access to profile setup",
                   "Public CV sharing",
-                  "Community feedback",
-                  "Upvote other CVs",
+                  "View other profiles",
                 ].map((feature) => (
                   <li key={feature} className="flex items-center gap-3 text-muted-foreground">
                     <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
@@ -399,11 +384,9 @@ export default function LandingPage() {
               </div>
               <ul className="space-y-4 mb-8">
                 {[
-                  "Unlimited CV creation slots",
+                  "Unlimited CV formats",
                   "AI-powered CV feedback",
-                  "Priority in public feed",
-                  "Advanced analytics",
-                  "Priority support",
+                  "All Free features"
                 ].map((feature) => (
                   <li key={feature} className="flex items-center gap-3 text-primary-foreground/90">
                     <CheckCircle2 className="w-5 h-5 text-premium flex-shrink-0" />

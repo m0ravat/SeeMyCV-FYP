@@ -95,9 +95,7 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   
   const [credentials, setCredentials] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
+    username: "",
     password: "",
   });
   const [agreeToTerms, setAgreeToTerms] = useState(false);
@@ -373,44 +371,16 @@ export default function SignupPage() {
               {/* Step 1 Form */}
               <form onSubmit={handleStep1Submit} className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <Input
-                        id="firstName"
-                        name="firstName"
-                        placeholder="John"
-                        value={credentials.firstName}
-                        onChange={handleCredentialsChange}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last name</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      placeholder="Doe"
-                      value={credentials.lastName}
-                      onChange={handleCredentialsChange}
-                      required
-                    />
-                  </div>
-                </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email address</Label>
+                  <Label htmlFor="username">Username</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="name@example.com"
-                      value={credentials.email}
+                      id="username"
+                      name="username"
+                      type="text"
+                      placeholder="mockUsername"
+                      value={credentials.username}
                       onChange={handleCredentialsChange}
                       className="pl-10"
                       required
@@ -443,6 +413,7 @@ export default function SignupPage() {
                   <p className="text-xs text-muted-foreground">
                     Must be at least 8 characters with a number and symbol
                   </p>
+                </div>
                 </div>
 
                 <div className="space-y-4">
@@ -517,7 +488,7 @@ export default function SignupPage() {
                     <Input
                       id="phoneNumber"
                       type="tel"
-                      placeholder="+1 (555) 123-4567"
+                      placeholder="+44 (0) 7737373"
                       value={profileData.phoneNumber}
                       onChange={(e) => setProfileData({ ...profileData, phoneNumber: e.target.value })}
                     />
