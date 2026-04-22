@@ -1709,6 +1709,7 @@ function EditProjectForm({ project, onClose, onSuccess }: { project: Project; on
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: project.name || "",
+    summary: project.summary || "",
     description: project.description || "",
     technologies: (project.technologies || []).join(", "),
     link: project.url || "",
@@ -1727,8 +1728,9 @@ function EditProjectForm({ project, onClose, onSuccess }: { project: Project; on
         body: JSON.stringify({
           id: project.id,
           name: formData.name,
+          summary: formData.summary,
           description: formData.description,
-          technologies: formData.technologies.split(",").map((t) => t.trim()),
+          technologies: formData.technologies.split(",").map((t) => t.trim()).filter(Boolean),
           link: formData.link,
           startDate: formData.startDate,
           endDate: formData.endDate,
@@ -1757,13 +1759,23 @@ function EditProjectForm({ project, onClose, onSuccess }: { project: Project; on
         />
       </div>
       <div>
+        <Label htmlFor="summary">Summary</Label>
+        <Input
+          id="summary"
+          placeholder="One-line overview shown in the profile"
+          value={formData.summary}
+          onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+          required
+        />
+      </div>
+      <div>
         <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
+          placeholder="Full details shown when the project is opened"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={4}
-          required
         />
       </div>
       <div className="grid grid-cols-2 gap-4">

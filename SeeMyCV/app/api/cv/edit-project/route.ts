@@ -13,7 +13,7 @@ export async function PUT(req: Request) {
       );
     }
 
-    const { id, name, description, technologies, link, startDate, endDate } = await req.json();
+    const { id, name, summary, description, technologies, link, startDate, endDate } = await req.json();
 
     if (!id) {
       return NextResponse.json({ error: 'Project ID required' }, { status: 400 });
@@ -41,12 +41,15 @@ export async function PUT(req: Request) {
     const cvId = cvResult.rows[0].cv_id;
     const techString = Array.isArray(technologies) ? technologies.join(',') : technologies;
 
+    const toDateStr = (d: string | null | undefined) =>
+      d ? (d.length === 7 ? `${d}-01` : d) : null;
+
     // Update project
     await query(
       `UPDATE project 
-       SET title = $1, description = $2, skills = $3, link = $4, start_date = $5, end_date = $6
-       WHERE project_id = $7 AND cv_id = $8`,
-      [name, description, techString, link || null, startDate || null, endDate || null, id, cvId]
+       SET title = $1, summary = $2, description = $3, skills = $4, link = $5, start_date = $6, end_date = $7
+       WHERE project_id = $8 AND cv_id = $9`,
+      [name, summary || '', description || '', techString, link || null, toDateStr(startDate), toDateStr(endDate), id, cvId]
     );
 
     return NextResponse.json({ success: true });
