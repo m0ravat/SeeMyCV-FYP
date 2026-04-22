@@ -991,6 +991,66 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
             </div>
           </section>
 
+          {/* Projects Section */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-primary text-primary-foreground">PROJ</Badge>
+                <h2 className="text-base font-bold text-primary border-b-2 border-primary pb-1">
+                  Projects
+                </h2>
+              </div>
+              {isOwnProfile && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => console.log("Add project")}
+                  className="print:hidden h-8 w-8 p-0"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+            <div className="space-y-3">
+              {displayData.projects.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">No projects available</p>
+              ) : (
+                displayData.projects.map((proj) => (
+                  <div key={proj.id}>
+                    <div className="flex flex-wrap items-baseline gap-x-1">
+                      <button
+                        onClick={() => setSelectedProject(proj)}
+                        className="font-bold text-primary hover:underline cursor-pointer"
+                      >
+                        {proj.name}
+                      </button>
+                      {proj.url && (
+                        <a
+                          href={proj.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline text-sm"
+                        >
+                          <ExternalLink className="w-3 h-3 inline" />
+                        </a>
+                      )}
+                    </div>
+                    <p className="text-foreground text-sm mt-1">{proj.description}</p>
+                    {proj.technologies.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {proj.technologies.map((tech) => (
+                          <Badge key={tech} variant="secondary" className="text-xs">
+                            {tech}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+
           {/* Certifications Section */}
           <section>
             <div className="flex items-center justify-between mb-3">
