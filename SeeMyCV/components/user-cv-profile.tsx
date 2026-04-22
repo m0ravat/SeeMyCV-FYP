@@ -150,6 +150,16 @@ function transformEducation(dbEducation: any[]): Education[] {
   }));
 }
 
+function transformCertifications(dbCerts: any[]): any[] {
+  return dbCerts.map(cert => ({
+    id: cert.certification_id?.toString() || '',
+    name: cert.title || '',
+    issuer: cert.institute || '',
+    date: cert.issue_date || '',
+    url: cert.link,
+  }));
+}
+
 const defaultData: CVProfileData = {
   name: "Muhammad Ravat",
   location: "London, UK",
@@ -667,6 +677,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
         experience: cv.experiences?.length > 0 ? transformExperiences(cv.experiences) : [],
         projects: cv.projects?.length > 0 ? transformProjects(cv.projects) : [],
         education: cv.education?.length > 0 ? transformEducation(cv.education) : [],
+        certifications: cv.certifications?.length > 0 ? transformCertifications(cv.certifications) : [],
       };
     }
     
@@ -820,34 +831,11 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
                       {displayData.website.replace("https://", "")}
                     </a>
                   </>
-                )}
-              </div>
+                  )}
+                ))
+              )}
             </div>
-            {isOwnProfile && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => console.log("Edit contact info")}
-                className="print:hidden text-primary-foreground hover:bg-primary-foreground/10 h-8 w-8 p-0 flex-shrink-0 ml-4"
-              >
-                <Pencil className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* CV Content */}
-        <div className="px-8 py-6 space-y-5 text-foreground" style={{ fontSize: "10pt", lineHeight: "1.5" }}>
-          {/* About Me Section */}
-          {displayData.aboutMe && (
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <h2 className="text-base font-bold text-primary border-b-2 border-primary pb-1">
-                  About Me
-                </h2>
-              </div>
-              <p className="text-sm text-foreground leading-relaxed">{displayData.aboutMe}</p>
-            </section>
+          </section>
           )}
 
           {/* Education Section */}
@@ -871,7 +859,10 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
               )}
             </div>
             <div className="space-y-3">
-              {displayData.education.map((edu) => (
+              {displayData.education.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">No education added yet</p>
+              ) : (
+                displayData.education.map((edu) => (
                 <div key={edu.id}>
                   <div className="flex flex-wrap items-baseline gap-x-1">
                     <button
@@ -917,7 +908,10 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
               )}
             </div>
             <div className="space-y-4">
-              {displayData.experience.map((exp) => (
+              {displayData.experience.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">No experience added yet</p>
+              ) : (
+                displayData.experience.map((exp) => (
                 <div key={exp.id}>
                   <div className="flex flex-wrap items-baseline gap-x-1">
                     <span className="font-bold text-foreground">{exp.company}</span>
@@ -935,7 +929,8 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
                   </div>
                   <p className="text-foreground mt-1 text-sm">{exp.description}</p>
                 </div>
-              ))}
+                ))
+              )}
             </div>
           </section>
 
@@ -960,7 +955,10 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
               )}
             </div>
             <div className="space-y-1.5">
-              {displayData.skills.map((skillGroup) => (
+              {displayData.skills.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">No skills added yet</p>
+              ) : (
+                displayData.skills.map((skillGroup) => (
                 <div key={skillGroup.category}>
                   <span className="font-bold text-foreground">{skillGroup.category}</span>
                   <span className="text-foreground"> - </span>
@@ -979,7 +977,8 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
                     <span className="text-foreground">.</span>
                   </span>
                 </div>
-              ))}
+                ))
+              )}
             </div>
           </section>
 
@@ -1003,7 +1002,18 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
                 </Button>
               )}
             </div>
-            <p className="text-sm text-muted-foreground italic">No certifications added yet</p>
+            {displayData.certifications && displayData.certifications.length > 0 ? (
+              <div className="space-y-2">
+                {displayData.certifications.map((cert) => (
+                  <div key={cert.id} className="text-sm">
+                    <span className="font-medium text-foreground">{cert.name}</span>
+                    {cert.issuer && <span className="text-muted-foreground"> - {cert.issuer}</span>}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">No certifications added yet</p>
+            )}
           </section>
         </div>
       </div>
