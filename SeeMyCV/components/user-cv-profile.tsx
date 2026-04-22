@@ -650,6 +650,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
   const [showAddEducationDialog, setShowAddEducationDialog] = useState(false);
   const [showAddSkillDialog, setShowAddSkillDialog] = useState(false);
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
+  const [showAddCertificationDialog, setShowAddCertificationDialog] = useState(false);
   
   // Fetch real user data if this is own profile
   const { userData, loading, refetch } = useUser();
@@ -700,6 +701,10 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
 
   const handleAddProject = () => {
     setShowAddProjectDialog(true);
+  };
+
+  const handleAddCertification = () => {
+    setShowAddCertificationDialog(true);
   };
 
   const handleAddEducation = () => {
@@ -802,6 +807,22 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
             onClose={() => setShowAddProjectDialog(false)} 
             onSuccess={() => {
               setShowAddProjectDialog(false);
+              refetch();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Certification Dialog */}
+      <Dialog open={showAddCertificationDialog} onOpenChange={setShowAddCertificationDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Certification</DialogTitle>
+          </DialogHeader>
+          <AddCertificationForm 
+            onClose={() => setShowAddCertificationDialog(false)} 
+            onSuccess={() => {
+              setShowAddCertificationDialog(false);
               refetch();
             }}
           />
@@ -1536,6 +1557,110 @@ function AddProjectForm({ onClose, onSuccess }: { onClose: () => void; onSuccess
         </Button>
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Adding..." : "Add Project"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Add Certification Form Component
+function AddCertificationForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    institute: "",
+    issueDate: "",
+    expiryDate: "",
+    description: "",
+    link: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/cv/add-certification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) throw new Error("Failed to add certification");
+      onSuccess();
+    } catch (error) {
+      console.error("[v0] Error adding certification:", error);
+      alert("Failed to add certification");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="title">Certification Title</Label>
+        <Input
+          id="title"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="institute">Issuing Organization</Label>
+        <Input
+          id="institute"
+          value={formData.institute}
+          onChange={(e) => setFormData({ ...formData, institute: e.target.value })}
+          required
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="issueDate">Issue Date</Label>
+          <Input
+            id="issueDate"
+            type="date"
+            value={formData.issueDate}
+            onChange={(e) => setFormData({ ...formData, issueDate: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="expiryDate">Expiry Date (Optional)</Label>
+          <Input
+            id="expiryDate"
+            type="date"
+            value={formData.expiryDate}
+            onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+          />
+        </div>
+      </div>
+      <div>
+        <Label htmlFor="description">Description (Optional)</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          rows={3}
+        />
+      </div>
+      <div>
+        <Label htmlFor="link">Credential URL (Optional)</Label>
+        <Input
+          id="link"
+          type="url"
+          value={formData.link}
+          onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+          placeholder="https://..."
+        />
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Adding..." : "Add Certification"}
         </Button>
       </div>
     </form>
