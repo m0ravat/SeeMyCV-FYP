@@ -78,6 +78,17 @@ interface Education {
   description?: string;
 }
 
+interface Certification {
+  id: string;
+  name: string;
+  issuer: string;
+  date?: string;
+  expiryDate?: string;
+  description?: string;
+  url?: string;
+  skills?: string[];
+}
+
 interface CVProfileData {
   name: string;
   location: string;
@@ -91,6 +102,7 @@ interface CVProfileData {
   experience: Experience[];
   projects: Project[];
   education: Education[];
+  certifications?: Certification[];
 }
 
 interface UserCVProfileProps {
@@ -150,6 +162,23 @@ function transformEducation(dbEducation: any[]): Education[] {
     startDate: edu.start_date || '',
     endDate: edu.end_date || '',
     grade: edu.achieved,
+    target: edu.target,
+    gradeDescription: edu.grade_description,
+  }));
+}
+
+function transformCertifications(dbCerts: any[]): Certification[] {
+  return dbCerts.map(cert => ({
+    id: cert.certification_id?.toString() || '',
+    name: cert.title || '',
+    issuer: cert.institute || '',
+    date: cert.issue_date || '',
+    expiryDate: cert.expiry_date || '',
+    description: cert.description || cert.summary || '',
+    url: cert.link || '',
+    skills: cert.skills
+      ? cert.skills.split(',').map((s: string) => s.trim()).filter(Boolean)
+      : [],
   }));
 }
 
@@ -680,6 +709,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
         experience: cv.experiences?.length > 0 ? transformExperiences(cv.experiences) : [],
         projects: cv.projects?.length > 0 ? transformProjects(cv.projects) : [],
         education: cv.education?.length > 0 ? transformEducation(cv.education) : [],
+        certifications: cv.certifications?.length > 0 ? transformCertifications(cv.certifications) : [],
       };
     }
     
@@ -789,6 +819,23 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
     } catch (error) {
       console.error("[v0] Error deleting education:", error);
       alert("Failed to delete education");
+    }
+  };
+
+  const handleDeleteCertification = async () => {
+    if (!selectedCertification?.id) return;
+    try {
+      const response = await fetch("/api/cv/delete-certification", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedCertification.id }),
+      });
+      if (!response.ok) throw new Error("Failed to delete certification");
+      setSelectedCertification(null);
+      refetch();
+    } catch (error) {
+      console.error("[v0] Error deleting certification:", error);
+      alert("Failed to delete certification");
     }
   };
 
@@ -987,6 +1034,70 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
         onEdit={handleEditEducation}
         onDelete={handleDeleteEducation}
       />
+
+      {/* Certification Detail Dialog */}
+      <Dialog open={!!selectedCertification && !showEditCertificationDialog} onOpenChange={(open) => { if (!open) setSelectedCertification(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
+            <DialogTitle className="text-lg pr-4">{selectedCertification?.name}</DialogTitle>
+            {isOwnProfile && (
+              <div className="flex gap-2 shrink-0">
+                <Button size="sm" variant="outline" onClick={() => setShowEditCertificationDialog(true)}>
+                  <Pencil className="w-4 h-4" />
+                </Button>
+                <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={handleDeleteCertification}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+          </DialogHeader>
+          {selectedCertification && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Issued by</span>
+                <span className="font-medium text-foreground">{selectedCertification.issuer}</span>
+              </div>
+              {selectedCertification.date && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Issue Date</span>
+                  <span className="font-medium text-foreground">{selectedCertification.date}</span>
+                </div>
+              )}
+              {selectedCertification.expiryDate && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Expiry Date</span>
+                  <span className="font-medium text-foreground">{selectedCertification.expiryDate}</span>
+                </div>
+              )}
+              {selectedCertification.description && (
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-foreground leading-relaxed">{selectedCertification.description}</p>
+                </div>
+              )}
+              {selectedCertification.skills && selectedCertification.skills.length > 0 && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Skills</p>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedCertification.skills.map((s: string) => (
+                      <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {selectedCertification.url && (
+                <a
+                  href={selectedCertification.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                >
+                  View Credential
+                </a>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Action Bar */}
       {isOwnProfile && (
@@ -1293,7 +1404,42 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
                 </Button>
               )}
             </div>
-            <p className="text-sm text-muted-foreground italic">No certifications added yet</p>
+            {displayData.certifications && displayData.certifications.length > 0 ? (
+              <div className="space-y-3">
+                {displayData.certifications.map((cert) => (
+                  <div
+                    key={cert.id}
+                    className="p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => setSelectedCertification(cert)}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-foreground truncate">{cert.name}</p>
+                        <p className="text-xs text-muted-foreground">{cert.issuer}</p>
+                        {cert.date && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Issued: {cert.date}{cert.expiryDate ? ` · Expires: ${cert.expiryDate}` : ""}
+                          </p>
+                        )}
+                      </div>
+                      <Badge variant="outline" className="text-xs shrink-0">CERT</Badge>
+                    </div>
+                    {cert.description && (
+                      <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{cert.description}</p>
+                    )}
+                    {cert.skills && cert.skills.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {cert.skills.map((s) => (
+                          <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">No certifications added yet</p>
+            )}
           </section>
         </div>
       </div>

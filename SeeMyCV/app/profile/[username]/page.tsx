@@ -15,7 +15,8 @@ function transformSkills(dbSkills: any[]) {
     grouped[category].push({
       name: skill.name,
       level: skill.skill_level || "intermediate",
-      description: skill.description,
+      description: skill.description || "",
+      yearsExperience: skill.years_experience || undefined,
     });
   });
   return Object.entries(grouped).map(([category, items]) => ({ category, items }));
@@ -31,6 +32,7 @@ function transformExperiences(dbExperiences: any[]) {
     endDate: exp.end_date || "",
     current: !exp.end_date,
     description: exp.description || "",
+    keySkills: exp.key_skills || "",
     bullets: [],
   }));
 }
@@ -41,9 +43,11 @@ function transformProjects(dbProjects: any[]) {
     name: proj.title || "",
     description: proj.description || proj.summary || "",
     technologies: proj.skills
-      ? proj.skills.split(",").map((s: string) => s.trim())
+      ? proj.skills.split(",").map((s: string) => s.trim()).filter(Boolean)
       : [],
-    url: proj.link,
+    url: proj.link || "",
+    startDate: proj.start_date || "",
+    endDate: proj.end_date || "",
     bullets: [],
   }));
 }
@@ -57,6 +61,23 @@ function transformEducation(dbEducation: any[]) {
     startDate: edu.start_date || "",
     endDate: edu.end_date || "",
     grade: edu.achieved || "",
+    target: edu.target || "",
+    gradeDescription: edu.grade_description || "",
+  }));
+}
+
+function transformCertifications(dbCerts: any[]) {
+  return dbCerts.map((cert) => ({
+    id: cert.certification_id?.toString() || "",
+    name: cert.title || "",
+    issuer: cert.institute || "",
+    date: cert.issue_date || "",
+    expiryDate: cert.expiry_date || "",
+    description: cert.description || cert.summary || "",
+    url: cert.link || "",
+    skills: cert.skills
+      ? cert.skills.split(",").map((s: string) => s.trim()).filter(Boolean)
+      : [],
   }));
 }
 
@@ -95,6 +116,7 @@ export default function PublicProfilePage() {
           experience: cv.experiences?.length > 0 ? transformExperiences(cv.experiences) : [],
           projects: cv.projects?.length > 0 ? transformProjects(cv.projects) : [],
           education: cv.education?.length > 0 ? transformEducation(cv.education) : [],
+          certifications: cv.certifications?.length > 0 ? transformCertifications(cv.certifications) : [],
         });
       } catch {
         setNotFound(true);
