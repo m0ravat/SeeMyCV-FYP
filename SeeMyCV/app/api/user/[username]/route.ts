@@ -35,7 +35,7 @@ export async function GET(
     const profile = profileResult.rows[0];
 
     // Block access if account is private
-    if (profile.is_searchable === false) {
+    if (profile.isSearchable === false) {
       return NextResponse.json({ error: 'private' }, { status: 403 });
     }
 
@@ -67,7 +67,7 @@ export async function GET(
         location: profile.person_location,
         linkedinUrl: profile.linkedin_url,
         personalWebsite: profile.personal_website,
-        contactPublic: profile.contact_public,
+        contactPublic: profile.contactPublic,
         aboutMe: cv?.about_me || '',
       },
       cv: {
