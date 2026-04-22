@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useLogout } from "@/lib/use-logout";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +35,7 @@ interface HeaderProps {
 export function Header({ currentPage, onNavigate, isPremium = false }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { logout } = useLogout();
 
   const navItems: Array<{ id: string; label: string; icon: typeof Home; href: string | null; badge?: number }> = [
     { id: "feed", label: "Feed", icon: Home, href: null },
@@ -162,7 +164,10 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive">
+                <DropdownMenuItem 
+                  onClick={logout}
+                  className="text-destructive cursor-pointer"
+                >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
                 </DropdownMenuItem>

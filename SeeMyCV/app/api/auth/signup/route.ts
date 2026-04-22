@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { query, withTransaction } from '@/lib/db';
+import { createSession } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
@@ -214,6 +215,9 @@ export async function POST(req: NextRequest) {
 
       return { userId, profileId, cvId };
     });
+
+    // Create session with HTTP-only cookie
+    await createSession(result.userId, username, email, isPremiumPlan || false);
 
     return NextResponse.json(
       {

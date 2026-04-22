@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
+import { createSession } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
@@ -46,10 +47,9 @@ export async function POST(req: NextRequest) {
 
     const userEmail = profileResult.rows[0]?.email || null;
 
-    console.log('[v0] Login successful for user:', user.user_id);
+    // Create session with HTTP-only cookie
+    await createSession(user.user_id, user.username, userEmail, user.isPremium);
 
-    // In production, create a secure session here (HTTP-only cookie, JWT, etc.)
-    // For now, return user data
     return NextResponse.json(
       {
         success: true,
