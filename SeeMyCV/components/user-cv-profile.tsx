@@ -758,10 +758,6 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
     }
   };
 
-  const handleEditProject = () => {
-    console.log("Edit project:", selectedProject?.id);
-  };
-
   const handleDeleteProject = async () => {
     if (!selectedProject?.id) return;
     try {
@@ -777,10 +773,6 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
       console.error("[v0] Error deleting project:", error);
       alert("Failed to delete project");
     }
-  };
-
-  const handleEditEducation = () => {
-    console.log("Edit education:", selectedEducation?.id);
   };
 
   const handleDeleteEducation = async () => {
