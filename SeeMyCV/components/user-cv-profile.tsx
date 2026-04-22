@@ -646,11 +646,16 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedEducation, setSelectedEducation] = useState<Education | null>(null);
+  const [selectedCertification, setSelectedCertification] = useState<any | null>(null);
   const [showAddExperienceDialog, setShowAddExperienceDialog] = useState(false);
   const [showAddEducationDialog, setShowAddEducationDialog] = useState(false);
   const [showAddSkillDialog, setShowAddSkillDialog] = useState(false);
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
   const [showAddCertificationDialog, setShowAddCertificationDialog] = useState(false);
+  const [showEditExperienceDialog, setShowEditExperienceDialog] = useState(false);
+  const [showEditEducationDialog, setShowEditEducationDialog] = useState(false);
+  const [showEditProjectDialog, setShowEditProjectDialog] = useState(false);
+  const [showEditCertificationDialog, setShowEditCertificationDialog] = useState(false);
   
   // Fetch real user data if this is own profile
   const { userData, loading, refetch } = useUser();
@@ -721,30 +726,78 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
   };
 
   const handleEditExperience = () => {
-    console.log("Edit experience:", selectedExperience?.id);
+    setShowEditExperienceDialog(true);
   };
 
-  const handleDeleteExperience = () => {
-    console.log("Delete experience:", selectedExperience?.id);
-    setSelectedExperience(null);
+  const handleEditProject = () => {
+    setShowEditProjectDialog(true);
+  };
+
+  const handleEditEducation = () => {
+    setShowEditEducationDialog(true);
+  };
+
+  const handleEditCertification = () => {
+    setShowEditCertificationDialog(true);
+  };
+
+  const handleDeleteExperience = async () => {
+    if (!selectedExperience?.id) return;
+    try {
+      const response = await fetch("/api/cv/delete-experience", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedExperience.id }),
+      });
+      if (!response.ok) throw new Error("Failed to delete experience");
+      setSelectedExperience(null);
+      refetch();
+    } catch (error) {
+      console.error("[v0] Error deleting experience:", error);
+      alert("Failed to delete experience");
+    }
   };
 
   const handleEditProject = () => {
     console.log("Edit project:", selectedProject?.id);
   };
 
-  const handleDeleteProject = () => {
-    console.log("Delete project:", selectedProject?.id);
-    setSelectedProject(null);
+  const handleDeleteProject = async () => {
+    if (!selectedProject?.id) return;
+    try {
+      const response = await fetch("/api/cv/delete-project", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedProject.id }),
+      });
+      if (!response.ok) throw new Error("Failed to delete project");
+      setSelectedProject(null);
+      refetch();
+    } catch (error) {
+      console.error("[v0] Error deleting project:", error);
+      alert("Failed to delete project");
+    }
   };
 
   const handleEditEducation = () => {
     console.log("Edit education:", selectedEducation?.id);
   };
 
-  const handleDeleteEducation = () => {
-    console.log("Delete education:", selectedEducation?.id);
-    setSelectedEducation(null);
+  const handleDeleteEducation = async () => {
+    if (!selectedEducation?.id) return;
+    try {
+      const response = await fetch("/api/cv/delete-education", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedEducation.id }),
+      });
+      if (!response.ok) throw new Error("Failed to delete education");
+      setSelectedEducation(null);
+      refetch();
+    } catch (error) {
+      console.error("[v0] Error deleting education:", error);
+      alert("Failed to delete education");
+    }
   };
 
   return (
@@ -826,6 +879,86 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
               refetch();
             }}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Experience Dialog */}
+      <Dialog open={showEditExperienceDialog} onOpenChange={setShowEditExperienceDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Experience</DialogTitle>
+          </DialogHeader>
+          {selectedExperience && (
+            <EditExperienceForm 
+              experience={selectedExperience}
+              onClose={() => setShowEditExperienceDialog(false)} 
+              onSuccess={() => {
+                setShowEditExperienceDialog(false);
+                setSelectedExperience(null);
+                refetch();
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Education Dialog */}
+      <Dialog open={showEditEducationDialog} onOpenChange={setShowEditEducationDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Education</DialogTitle>
+          </DialogHeader>
+          {selectedEducation && (
+            <EditEducationForm 
+              education={selectedEducation}
+              onClose={() => setShowEditEducationDialog(false)} 
+              onSuccess={() => {
+                setShowEditEducationDialog(false);
+                setSelectedEducation(null);
+                refetch();
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Project Dialog */}
+      <Dialog open={showEditProjectDialog} onOpenChange={setShowEditProjectDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Project</DialogTitle>
+          </DialogHeader>
+          {selectedProject && (
+            <EditProjectForm 
+              project={selectedProject}
+              onClose={() => setShowEditProjectDialog(false)} 
+              onSuccess={() => {
+                setShowEditProjectDialog(false);
+                setSelectedProject(null);
+                refetch();
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Certification Dialog */}
+      <Dialog open={showEditCertificationDialog} onOpenChange={setShowEditCertificationDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Certification</DialogTitle>
+          </DialogHeader>
+          {selectedCertification && (
+            <EditCertificationForm 
+              certification={selectedCertification}
+              onClose={() => setShowEditCertificationDialog(false)} 
+              onSuccess={() => {
+                setShowEditCertificationDialog(false);
+                setSelectedCertification(null);
+                refetch();
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
@@ -1172,7 +1305,462 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
           </section>
         </div>
       </div>
-    </div>
+    </form>
+  );
+}
+
+// Edit Experience Form Component
+function EditExperienceForm({ experience, onClose, onSuccess }: { experience: Experience; onClose: () => void; onSuccess: () => void }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    title: experience.title || "",
+    company: experience.company || "",
+    location: experience.location || "",
+    startDate: experience.startDate || "",
+    endDate: experience.endDate || "",
+    current: experience.current || false,
+    description: experience.description || "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/cv/edit-experience", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: experience.id, ...formData }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update experience");
+      onSuccess();
+    } catch (error) {
+      console.error("[v0] Error updating experience:", error);
+      alert("Failed to update experience");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="title">Job Title</Label>
+        <Input
+          id="title"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="company">Company</Label>
+        <Input
+          id="company"
+          value={formData.company}
+          onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="location">Location</Label>
+        <Input
+          id="location"
+          value={formData.location}
+          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="startDate">Start Date</Label>
+          <Input
+            id="startDate"
+            type="month"
+            value={formData.startDate}
+            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="endDate">End Date</Label>
+          <Input
+            id="endDate"
+            type="month"
+            value={formData.endDate}
+            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+            disabled={formData.current}
+          />
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="current"
+          checked={formData.current}
+          onChange={(e) => setFormData({ ...formData, current: e.target.checked, endDate: "" })}
+        />
+        <Label htmlFor="current">Currently working here</Label>
+      </div>
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          rows={4}
+        />
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Edit Education Form Component
+function EditEducationForm({ education, onClose, onSuccess }: { education: Education; onClose: () => void; onSuccess: () => void }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    institution: education.institution || "",
+    degree: education.degree || "",
+    location: education.location || "",
+    startDate: education.startDate || "",
+    endDate: education.endDate || "",
+    target: education.target || "",
+    achieved: education.achieved || "",
+    gradeDescription: education.gradeDescription || "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/cv/edit-education", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: education.id, ...formData }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update education");
+      onSuccess();
+    } catch (error) {
+      console.error("[v0] Error updating education:", error);
+      alert("Failed to update education");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="institution">Institution</Label>
+        <Input
+          id="institution"
+          value={formData.institution}
+          onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="degree">Degree</Label>
+        <Input
+          id="degree"
+          value={formData.degree}
+          onChange={(e) => setFormData({ ...formData, degree: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="location">Location</Label>
+        <Input
+          id="location"
+          value={formData.location}
+          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="startDate">Start Date</Label>
+          <Input
+            id="startDate"
+            type="month"
+            value={formData.startDate}
+            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="endDate">End Date</Label>
+          <Input
+            id="endDate"
+            type="month"
+            value={formData.endDate}
+            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="target">Target Grade (Optional)</Label>
+          <Input
+            id="target"
+            value={formData.target}
+            onChange={(e) => setFormData({ ...formData, target: e.target.value })}
+            placeholder="e.g., 3.8"
+          />
+        </div>
+        <div>
+          <Label htmlFor="achieved">Achieved Grade (Optional)</Label>
+          <Input
+            id="achieved"
+            value={formData.achieved}
+            onChange={(e) => setFormData({ ...formData, achieved: e.target.value })}
+            placeholder="e.g., 3.7"
+          />
+        </div>
+      </div>
+      <div>
+        <Label htmlFor="gradeDescription">Grade Description (Optional)</Label>
+        <Input
+          id="gradeDescription"
+          value={formData.gradeDescription}
+          onChange={(e) => setFormData({ ...formData, gradeDescription: e.target.value })}
+          placeholder="e.g., First Class Honours"
+        />
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Edit Project Form Component
+function EditProjectForm({ project, onClose, onSuccess }: { project: Project; onClose: () => void; onSuccess: () => void }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: project.name || "",
+    description: project.description || "",
+    technologies: (project.technologies || []).join(", "),
+    link: project.url || "",
+    startDate: project.startDate || "",
+    endDate: project.endDate || "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/cv/edit-project", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: project.id,
+          name: formData.name,
+          description: formData.description,
+          technologies: formData.technologies.split(",").map((t) => t.trim()),
+          link: formData.link,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update project");
+      onSuccess();
+    } catch (error) {
+      console.error("[v0] Error updating project:", error);
+      alert("Failed to update project");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="name">Project Name</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          rows={4}
+          required
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="startDate">Start Date (Optional)</Label>
+          <Input
+            id="startDate"
+            type="month"
+            value={formData.startDate}
+            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="endDate">End Date (Optional)</Label>
+          <Input
+            id="endDate"
+            type="month"
+            value={formData.endDate}
+            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+          />
+        </div>
+      </div>
+      <div>
+        <Label htmlFor="technologies">Technologies (comma-separated)</Label>
+        <Input
+          id="technologies"
+          value={formData.technologies}
+          onChange={(e) => setFormData({ ...formData, technologies: e.target.value })}
+          placeholder="React, TypeScript, Tailwind"
+        />
+      </div>
+      <div>
+        <Label htmlFor="link">Project Link (Optional)</Label>
+        <Input
+          id="link"
+          type="url"
+          value={formData.link}
+          onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+          placeholder="https://..."
+        />
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Edit Certification Form Component
+function EditCertificationForm({ certification, onClose, onSuccess }: { certification: any; onClose: () => void; onSuccess: () => void }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    title: certification.name || "",
+    institute: certification.issuer || "",
+    issueDate: certification.date || "",
+    expiryDate: "",
+    description: "",
+    link: certification.url || "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/cv/edit-certification", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: certification.id, ...formData }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update certification");
+      onSuccess();
+    } catch (error) {
+      console.error("[v0] Error updating certification:", error);
+      alert("Failed to update certification");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="title">Certification Title</Label>
+        <Input
+          id="title"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="institute">Issuing Organization</Label>
+        <Input
+          id="institute"
+          value={formData.institute}
+          onChange={(e) => setFormData({ ...formData, institute: e.target.value })}
+          required
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="issueDate">Issue Date</Label>
+          <Input
+            id="issueDate"
+            type="date"
+            value={formData.issueDate}
+            onChange={(e) => setFormData({ ...formData, issueDate: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="expiryDate">Expiry Date (Optional)</Label>
+          <Input
+            id="expiryDate"
+            type="date"
+            value={formData.expiryDate}
+            onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+          />
+        </div>
+      </div>
+      <div>
+        <Label htmlFor="description">Description (Optional)</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          rows={3}
+        />
+      </div>
+      <div>
+        <Label htmlFor="link">Credential URL (Optional)</Label>
+        <Input
+          id="link"
+          type="url"
+          value={formData.link}
+          onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+          placeholder="https://..."
+        />
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
+    </form>
   );
 }
 
