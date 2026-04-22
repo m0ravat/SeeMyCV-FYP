@@ -1485,6 +1485,8 @@ function AddProjectForm({ onClose, onSuccess }: { onClose: () => void; onSuccess
     description: "",
     technologies: "",
     link: "",
+    startDate: "",
+    endDate: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1540,6 +1542,26 @@ function AddProjectForm({ onClose, onSuccess }: { onClose: () => void; onSuccess
           onChange={(e) => setFormData({ ...formData, technologies: e.target.value })}
           placeholder="React, TypeScript, Tailwind"
         />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="startDate">Start Date (Optional)</Label>
+          <Input
+            id="startDate"
+            type="month"
+            value={formData.startDate}
+            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="endDate">End Date (Optional)</Label>
+          <Input
+            id="endDate"
+            type="month"
+            value={formData.endDate}
+            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+          />
+        </div>
       </div>
       <div>
         <Label htmlFor="link">Project Link (Optional)</Label>
