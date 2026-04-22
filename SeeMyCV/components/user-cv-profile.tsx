@@ -652,7 +652,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
   
   // Fetch real user data if this is own profile
-  const { userData, loading } = useUser();
+  const { userData, loading, refetch } = useUser();
   
   // Use real data if available, NEVER fall back to hardcoded data for own profile
   const displayData = (() => {
@@ -766,7 +766,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
             onClose={() => setShowAddExperienceDialog(false)} 
             onSuccess={() => {
               setShowAddExperienceDialog(false);
-              // Refresh user data
+              refetch();
             }}
           />
         </DialogContent>
@@ -782,7 +782,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
             onClose={() => setShowAddEducationDialog(false)} 
             onSuccess={() => {
               setShowAddEducationDialog(false);
-              // Refresh user data
+              refetch();
             }}
           />
         </DialogContent>
@@ -798,7 +798,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
             onClose={() => setShowAddSkillDialog(false)} 
             onSuccess={() => {
               setShowAddSkillDialog(false);
-              // Refresh user data
+              refetch();
             }}
           />
         </DialogContent>
@@ -814,7 +814,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
             onClose={() => setShowAddProjectDialog(false)} 
             onSuccess={() => {
               setShowAddProjectDialog(false);
-              // Refresh user data
+              refetch();
             }}
           />
         </DialogContent>
