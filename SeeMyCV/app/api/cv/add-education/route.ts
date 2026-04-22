@@ -36,12 +36,16 @@ export async function POST(req: Request) {
 
     const cvId = cvResult.rows[0].cv_id;
 
+    // Convert YYYY-MM to YYYY-MM-01 for PostgreSQL date compatibility
+    const toDateStr = (d: string | null | undefined) =>
+      d ? (d.length === 7 ? `${d}-01` : d) : null;
+
     // Insert education
     const insertResult = await query(
       `INSERT INTO education (cv_id, institute_name, location, start_date, end_date, target, achieved, grade_description)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING education_id`,
-      [cvId, institution, location || null, startDate || null, endDate || null, target || null, achieved || null, gradeDescription || null]
+      [cvId, institution, location || null, toDateStr(startDate), toDateStr(endDate), target || null, achieved || null, gradeDescription || null]
     );
 
     return NextResponse.json({

@@ -37,12 +37,16 @@ export async function POST(req: Request) {
     const cvId = cvResult.rows[0].cv_id;
     const techString = technologies?.join(',') || '';
 
+    // Convert YYYY-MM to YYYY-MM-01 for PostgreSQL date compatibility
+    const toDateStr = (d: string | null | undefined) =>
+      d ? (d.length === 7 ? `${d}-01` : d) : null;
+
     // Insert project
     const insertResult = await query(
       `INSERT INTO project (cv_id, title, summary, description, skills, link, start_date, end_date)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING project_id`,
-      [cvId, name, description, description, techString, link || null, startDate || null, endDate || null]
+      [cvId, name, description, description, techString, link || null, toDateStr(startDate), toDateStr(endDate)]
     );
 
     return NextResponse.json({
