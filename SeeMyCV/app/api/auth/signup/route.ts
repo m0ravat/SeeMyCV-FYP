@@ -73,14 +73,13 @@ export async function POST(req: NextRequest) {
     const result = await withTransaction(async (client) => {
       // 1. Insert user
       const userResult = await client.query(
-        `INSERT INTO "user" (username, password, "isPremium", created_at)
-         VALUES ($1, $2, $3, NOW())
+        `INSERT INTO "user" (username, password, "isPremium")
+         VALUES ($1, $2, $3)
          RETURNING user_id`,
         [username, hashedPassword, isPremiumPlan || false]
       );
 
       const userId = userResult.rows[0].user_id;
-      console.log('[v0] User created:', userId);
 
       // 2. Insert profile
       const profileResult = await client.query(
@@ -91,7 +90,6 @@ export async function POST(req: NextRequest) {
       );
 
       const profileId = profileResult.rows[0].profile_id;
-      console.log('[v0] Profile created:', profileId);
 
       // 3. Insert CV (about_me goes into CV table)
       const cvResult = await client.query(
@@ -102,11 +100,9 @@ export async function POST(req: NextRequest) {
       );
 
       const cvId = cvResult.rows[0].cv_id;
-      console.log('[v0] CV created:', cvId);
 
       // 4. Insert experiences
       if (experience && Array.isArray(experience) && experience.length > 0) {
-        console.log('[v0] Inserting', experience.length, 'experiences');
         for (const exp of experience) {
           if (exp.title || exp.company) { // Only insert if has data
             await client.query(
@@ -129,7 +125,6 @@ export async function POST(req: NextRequest) {
 
       // 5. Insert education
       if (education && Array.isArray(education) && education.length > 0) {
-        console.log('[v0] Inserting', education.length, 'education entries');
         for (const edu of education) {
           if (edu.instituteName) { // Only insert if has data
             await client.query(
@@ -152,7 +147,6 @@ export async function POST(req: NextRequest) {
 
       // 6. Insert projects
       if (projects && Array.isArray(projects) && projects.length > 0) {
-        console.log('[v0] Inserting', projects.length, 'projects');
         for (const proj of projects) {
           if (proj.title) { // Only insert if has data
             await client.query(
@@ -175,7 +169,6 @@ export async function POST(req: NextRequest) {
 
       // 7. Insert certifications
       if (certifications && Array.isArray(certifications) && certifications.length > 0) {
-        console.log('[v0] Inserting', certifications.length, 'certifications');
         for (const cert of certifications) {
           if (cert.title) { // Only insert if has data
             await client.query(
@@ -199,7 +192,6 @@ export async function POST(req: NextRequest) {
 
       // 8. Insert skills
       if (skills && Array.isArray(skills) && skills.length > 0) {
-        console.log('[v0] Inserting', skills.length, 'skills');
         for (const skill of skills) {
           if (skill.name) { // Only insert if has data
             // Map skillType to is_soft_skill boolean
@@ -223,8 +215,6 @@ export async function POST(req: NextRequest) {
       return { userId, profileId, cvId };
     });
 
-    console.log('[v0] Signup completed successfully:', result);
-
     return NextResponse.json(
       {
         success: true,
@@ -235,8 +225,9 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error('[v0] Signup error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: errorMessage.includes('duplicate key') ? 'User ID conflict - please try again' : 'Internal server error' },
       { status: 500 }
     );
   }
