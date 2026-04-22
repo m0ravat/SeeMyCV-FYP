@@ -867,28 +867,32 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
               )}
             </div>
             <div className="space-y-3">
-              {displayData.education.map((edu) => (
-                <div key={edu.id}>
-                  <div className="flex flex-wrap items-baseline gap-x-1">
-                    <button
-                      onClick={() => setSelectedEducation(edu)}
-                      className="font-bold text-primary hover:underline cursor-pointer"
-                    >
-                      {edu.institution}
-                    </button>
-                    <span className="text-muted-foreground text-sm">
-                      ({edu.startDate} - {edu.endDate})
-                    </span>
-                    <span className="text-foreground">-</span>
-                    <span className="text-foreground">{edu.degree}</span>
-                  </div>
-                  {edu.grade && (
-                    <p className="text-foreground text-sm mt-0.5">
-                      <span className="font-medium">{edu.expected ? "Expected" : "Grade"}:</span> {edu.grade}
+              {displayData.education.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">No education available</p>
+              ) : (
+                displayData.education.map((edu) => (
+                  <div key={edu.id}>
+                    <div className="flex flex-wrap items-baseline gap-x-1">
+                      <button
+                        onClick={() => setSelectedEducation(edu)}
+                        className="font-bold text-primary hover:underline cursor-pointer"
+                      >
+                        {edu.institution}
+                      </button>
+                      <span className="text-muted-foreground text-sm">
+                        ({edu.startDate} - {edu.endDate})
+                      </span>
+                      <span className="text-foreground">-</span>
+                      <span className="text-foreground">{edu.degree}</span>
+                    </div>
+                    {edu.grade && (
+                      <p className="text-foreground text-sm mt-0.5">
+                        <span className="font-medium">{edu.expected ? "Expected" : "Grade"}:</span> {edu.grade}
                     </p>
-                  )}
-                </div>
-              ))}
+                      )}
+                    </div>
+                ))
+              )}
             </div>
           </section>
 
@@ -913,25 +917,29 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
               )}
             </div>
             <div className="space-y-4">
-              {displayData.experience.map((exp) => (
-                <div key={exp.id}>
-                  <div className="flex flex-wrap items-baseline gap-x-1">
-                    <span className="font-bold text-foreground">{exp.company}</span>
-                    <span className="text-foreground">-</span>
-                    <button
-                      onClick={() => setSelectedExperience(exp)}
-                      className="font-bold text-primary hover:underline cursor-pointer"
-                    >
-                      {exp.title}
-                    </button>
-                    <span className="text-foreground">,</span>
-                    <span className="text-muted-foreground text-sm">
-                      {exp.startDate} - {exp.current ? "Current" : exp.endDate}
-                    </span>
+              {displayData.experience.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">No experience available</p>
+              ) : (
+                displayData.experience.map((exp) => (
+                  <div key={exp.id}>
+                    <div className="flex flex-wrap items-baseline gap-x-1">
+                      <span className="font-bold text-foreground">{exp.company}</span>
+                      <span className="text-foreground">-</span>
+                      <button
+                        onClick={() => setSelectedExperience(exp)}
+                        className="font-bold text-primary hover:underline cursor-pointer"
+                      >
+                        {exp.title}
+                      </button>
+                      <span className="text-foreground">,</span>
+                      <span className="text-muted-foreground text-sm">
+                        {exp.startDate} - {exp.current ? "Current" : exp.endDate}
+                      </span>
+                    </div>
+                    <p className="text-foreground mt-1 text-sm">{exp.description}</p>
                   </div>
-                  <p className="text-foreground mt-1 text-sm">{exp.description}</p>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </section>
 
@@ -956,26 +964,30 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
               )}
             </div>
             <div className="space-y-1.5">
-              {displayData.skills.map((skillGroup) => (
-                <div key={skillGroup.category}>
-                  <span className="font-bold text-foreground">{skillGroup.category}</span>
-                  <span className="text-foreground"> - </span>
-                  <span>
-                    {skillGroup.items.map((skill, idx) => (
-                      <span key={skill.name}>
-                        <button
-                          onClick={() => setSelectedSkill(skill)}
-                          className="text-primary hover:underline cursor-pointer"
-                        >
-                          {skill.name}
-                        </button>
-                        {idx < skillGroup.items.length - 1 && <span className="text-foreground">, </span>}
-                      </span>
-                    ))}
-                    <span className="text-foreground">.</span>
-                  </span>
-                </div>
-              ))}
+              {displayData.skills.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">No skills available</p>
+              ) : (
+                displayData.skills.map((skillGroup) => (
+                  <div key={skillGroup.category}>
+                    <span className="font-bold text-foreground">{skillGroup.category}</span>
+                    <span className="text-foreground"> - </span>
+                    <span>
+                      {skillGroup.items.map((skill, idx) => (
+                        <span key={skill.name}>
+                          <button
+                            onClick={() => setSelectedSkill(skill)}
+                            className="text-primary hover:underline cursor-pointer"
+                          >
+                            {skill.name}
+                          </button>
+                          {idx < skillGroup.items.length - 1 && <span className="text-foreground">, </span>}
+                        </span>
+                      ))}
+                      <span className="text-foreground">.</span>
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </section>
 
