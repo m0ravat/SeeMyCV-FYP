@@ -74,9 +74,9 @@ export default function DashboardPage() {
                   </Link>
                 </li>
                 <li>
-                  <button className="hover:text-foreground transition-colors">
-                    About Us
-                  </button>
+                  <Link href="/support" className="hover:text-foreground transition-colors">
+                    Support
+                  </Link>
                 </li>
               </ul>
             </div>

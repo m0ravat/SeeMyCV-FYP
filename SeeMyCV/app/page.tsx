@@ -490,7 +490,7 @@ export default function LandingPage() {
               <h4 className="font-semibold text-foreground mb-4">Company</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <button className="hover:text-foreground transition-colors">About Us</button>
+                  <Link href="/support" className="hover:text-foreground transition-colors">Support</Link>
                 </li>
                 <li>
                   <button className="hover:text-foreground transition-colors">Privacy Policy</button>
