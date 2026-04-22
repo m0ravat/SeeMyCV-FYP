@@ -834,10 +834,11 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
                 )}
               </div>
             </div>
-          </section>
+          </div>
+        </div>
 
-          {/* Education Section */}
-          <section>
+        {/* Education Section */}
+        <section>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <GraduationCap className="w-5 h-5 text-primary" />
