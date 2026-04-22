@@ -212,7 +212,6 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
   ]);
 
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [showCVForm, setShowCVForm] = useState(false);
   const [showAIFeedback, setShowAIFeedback] = useState(false);
   const [showCVPreview, setShowCVPreview] = useState(false);
@@ -225,7 +224,6 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
     setSelectedTemplate(templateId);
     setFormData(initialFormData);
     setActiveSection("contact");
-    setShowTemplateSelector(false);
     setShowCVForm(true);
   };
 
@@ -1021,167 +1019,92 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">My CVs</h1>
-          <p className="text-muted-foreground">Create and manage your professional CVs</p>
-        </div>
-        <Button onClick={() => setShowTemplateSelector(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Create New CV
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Choose a CV Template</h1>
+        <p className="text-muted-foreground">Select a template that best fits your industry and experience level</p>
       </div>
 
-      {/* Template Selector Page */}
-      {showTemplateSelector ? (
-        <div className="space-y-6">
-          <Button
-            variant="ghost"
-            onClick={() => setShowTemplateSelector(false)}
-            className="mb-4"
+      {/* Template Grid - Main View */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {cvTemplates.map((template) => (
+          <Card
+            key={template.id}
+            className={`transition-all ${
+              template.isPremium
+                ? "border-orange-500 hover:border-orange-600 hover:shadow-md hover:shadow-orange-200 bg-gradient-to-br from-orange-50 to-transparent"
+                : "hover:border-primary hover:shadow-md"
+            }`}
           >
-            ← Back to My CVs
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">Choose a CV Template</h2>
-            <p className="text-muted-foreground">Select a template that best fits your industry and experience level</p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {cvTemplates.map((template) => (
-              <Card
-                key={template.id}
-                className={`transition-all ${
-                  template.isPremium
-                    ? "border-orange-500 hover:border-orange-600 hover:shadow-md hover:shadow-orange-200 bg-gradient-to-br from-orange-50 to-transparent"
-                    : "hover:border-primary hover:shadow-md"
-                }`}
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`p-2 rounded-lg ${
-                        template.isPremium
-                          ? "bg-orange-100"
-                          : "bg-primary/10"
-                      }`}
-                    >
-                      <template.icon
-                        className={`w-5 h-5 ${
-                          template.isPremium
-                            ? "text-orange-600"
-                            : "text-primary"
-                        }`}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-base">{template.name}</CardTitle>
-                        {template.isPremium && (
-                          <Badge className="bg-orange-600 hover:bg-orange-700 text-white text-xs">
-                            Premium
-                          </Badge>
-                        )}
-                      </div>
-                      <CardDescription className="text-xs">{template.description}</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-2">
-                  <ul className="space-y-1 mb-3">
-                    {template.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Check
-                          className={`w-4 h-4 ${
-                            template.isPremium
-                              ? "text-orange-600"
-                              : "text-accent"
-                          }`}
-                        />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    className={`w-full ${
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`p-2 rounded-lg ${
+                    template.isPremium
+                      ? "bg-orange-100"
+                      : "bg-primary/10"
+                  }`}
+                >
+                  <template.icon
+                    className={`w-5 h-5 ${
                       template.isPremium
-                        ? "bg-orange-600 hover:bg-orange-700 text-white"
-                        : "bg-primary text-primary-foreground hover:bg-primary/90"
+                        ? "text-orange-600"
+                        : "text-primary"
                     }`}
-                    onClick={() => handleUseTemplate(template.id)}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* Saved CVs Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {savedCVs.map((cv) => {
-              const TemplateIcon = getTemplateIcon(cv.template);
-              return (
-                <Card key={cv.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <TemplateIcon className="w-5 h-5 text-primary" />
-                      </div>
-                      <CardTitle className="text-base">{cv.name}</CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-2">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 bg-transparent"
-                      >
-                        <Download className="w-4 h-4 mr-1" />
-                        Download
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteCV(cv.id)}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-
-                    {/* AI Feedback Button */}
-                    <Button
-                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                      onClick={() => setShowAIFeedback(true)}
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Get AI Feedback
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-
-            {/* Create New CV Card */}
-            <Card
-              className="border-dashed hover:border-primary hover:bg-primary/5 cursor-pointer transition-colors"
-              onClick={() => setShowTemplateSelector(true)}
-            >
-              <CardContent className="h-full flex flex-col items-center justify-center py-12">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <Plus className="w-6 h-6 text-primary" />
+                  />
                 </div>
-                <p className="font-medium text-foreground">Create New CV</p>
-                <p className="text-sm text-muted-foreground">Choose a template to get started</p>
-              </CardContent>
-            </Card>
-          </div>
-        </>
-      )}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-base">{template.name}</CardTitle>
+                    {template.isPremium && (
+                      <Badge className="bg-orange-600 hover:bg-orange-700 text-white text-xs">
+                        Premium
+                      </Badge>
+                    )}
+                  </div>
+                  <CardDescription className="text-xs">{template.description}</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <ul className="space-y-1 mb-4">
+                {template.features.map((feature) => (
+                  <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Check
+                      className={`w-4 h-4 ${
+                        template.isPremium
+                          ? "text-orange-600"
+                          : "text-accent"
+                      }`}
+                    />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex gap-2">
+                <Button
+                  className={`flex-1 ${
+                    template.isPremium
+                      ? "bg-orange-600 hover:bg-orange-700 text-white"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  }`}
+                  onClick={() => handleUseTemplate(template.id)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowAIFeedback(true)}
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  AI Feedback
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       {/* CV Form Dialog - Wider without preview */}
       <Dialog open={showCVForm} onOpenChange={setShowCVForm}>
