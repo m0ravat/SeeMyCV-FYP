@@ -20,9 +20,7 @@ import {
   FileText,
   Plus,
   Download,
-  Eye,
   Trash2,
-  Pencil,
   Sparkles,
   Check,
   FileCheck,
@@ -35,7 +33,6 @@ import {
   CheckCircle2,
   Lightbulb,
   Target,
-  TrendingUp,
   User,
   Briefcase,
   FolderOpen,
@@ -145,6 +142,22 @@ const cvTemplates = [
     icon: GraduationCap,
     features: ["Qualifications display", "Teaching philosophy", "Student outcomes"],
   },
+  {
+    id: "entry-level-software-engineer",
+    name: "Entry Level Software Engineer",
+    description: "Premium format designed for new software engineers entering the field",
+    icon: Code,
+    features: ["Technical projects focus", "Programming skills showcase", "GitHub portfolio"],
+    isPremium: true,
+  },
+  {
+    id: "software-engineer-apprenticeship",
+    name: "Software Engineer Apprenticeship",
+    description: "Premium format tailored for apprenticeship programs and early-career roles",
+    icon: GraduationCap,
+    features: ["Learning highlights", "Apprenticeship structure", "Mentorship display"],
+    isPremium: true,
+  },
 ];
 
 const formSections = [
@@ -199,7 +212,6 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
   ]);
 
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [showCVForm, setShowCVForm] = useState(false);
   const [showAIFeedback, setShowAIFeedback] = useState(false);
   const [showCVPreview, setShowCVPreview] = useState(false);
@@ -212,7 +224,6 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
     setSelectedTemplate(templateId);
     setFormData(initialFormData);
     setActiveSection("contact");
-    setShowTemplateSelector(false);
     setShowCVForm(true);
   };
 
@@ -1008,144 +1019,92 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">My CVs</h1>
-          <p className="text-muted-foreground">Create and manage your professional CVs</p>
-        </div>
-        <Button onClick={() => setShowTemplateSelector(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Create New CV
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Choose a CV Template</h1>
+        <p className="text-muted-foreground">Select a template that best fits your industry and experience level</p>
       </div>
 
-      {/* Saved CVs Grid */}
+      {/* Template Grid - Main View */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {savedCVs.map((cv) => {
-          const TemplateIcon = getTemplateIcon(cv.template);
-          return (
-            <Card key={cv.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <TemplateIcon className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">{cv.name}</CardTitle>
-                      <CardDescription className="text-xs">
-                        Modified {cv.lastModified}
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <Badge variant={cv.status === "published" ? "default" : "secondary"}>
-                    {cv.status}
-                  </Badge>
+        {cvTemplates.map((template) => (
+          <Card
+            key={template.id}
+            className={`transition-all ${
+              template.isPremium
+                ? "border-orange-500 hover:border-orange-600 hover:shadow-md hover:shadow-orange-200 bg-gradient-to-br from-orange-50 to-transparent"
+                : "hover:border-primary hover:shadow-md"
+            }`}
+          >
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`p-2 rounded-lg ${
+                    template.isPremium
+                      ? "bg-orange-100"
+                      : "bg-primary/10"
+                  }`}
+                >
+                  <template.icon
+                    className={`w-5 h-5 ${
+                      template.isPremium
+                        ? "text-orange-600"
+                        : "text-primary"
+                    }`}
+                  />
                 </div>
-              </CardHeader>
-              <CardContent className="pt-2">
-                {cv.status === "published" && (
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                    <span className="flex items-center gap-1">
-                      <TrendingUp className="w-4 h-4" />
-                      {cv.upvotes} upvotes
-                    </span>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-base">{template.name}</CardTitle>
+                    {template.isPremium && (
+                      <Badge className="bg-orange-600 hover:bg-orange-700 text-white text-xs">
+                        Premium
+                      </Badge>
+                    )}
                   </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 bg-transparent"
-                    onClick={() => setShowCVPreview(true)}
-                  >
-                    <Eye className="w-4 h-4 mr-1" />
-                    View
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-                    <Pencil className="w-4 h-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteCV(cv.id)}
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <CardDescription className="text-xs">{template.description}</CardDescription>
                 </div>
-
-                {/* AI Feedback Button */}
+              </div>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <ul className="space-y-1 mb-4">
+                {template.features.map((feature) => (
+                  <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Check
+                      className={`w-4 h-4 ${
+                        template.isPremium
+                          ? "text-orange-600"
+                          : "text-accent"
+                      }`}
+                    />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex gap-2">
                 <Button
-                  className="w-full mt-3 bg-primary text-primary-foreground hover:bg-primary/90"
+                  className={`flex-1 ${
+                    template.isPremium
+                      ? "bg-orange-600 hover:bg-orange-700 text-white"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  }`}
+                  onClick={() => handleUseTemplate(template.id)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
                   onClick={() => setShowAIFeedback(true)}
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
-                  Get AI Feedback
+                  AI Feedback
                 </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
-
-        {/* Create New CV Card */}
-        <Card
-          className="border-dashed hover:border-primary hover:bg-primary/5 cursor-pointer transition-colors"
-          onClick={() => setShowTemplateSelector(true)}
-        >
-          <CardContent className="h-full flex flex-col items-center justify-center py-12">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <Plus className="w-6 h-6 text-primary" />
-            </div>
-            <p className="font-medium text-foreground">Create New CV</p>
-            <p className="text-sm text-muted-foreground">Choose a template to get started</p>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
-
-      {/* Template Selector Dialog */}
-      <Dialog open={showTemplateSelector} onOpenChange={setShowTemplateSelector}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Choose a CV Template</DialogTitle>
-            <DialogDescription>
-              Select a template that best fits your industry and experience level
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid md:grid-cols-2 gap-4 py-4">
-            {cvTemplates.map((template) => (
-              <Card
-                key={template.id}
-                className="cursor-pointer hover:border-primary hover:shadow-md transition-all"
-                onClick={() => handleUseTemplate(template.id)}
-              >
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <template.icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">{template.name}</CardTitle>
-                      <CardDescription className="text-xs">{template.description}</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-1">
-                    {template.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Check className="w-4 h-4 text-accent" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* CV Form Dialog - Wider without preview */}
       <Dialog open={showCVForm} onOpenChange={setShowCVForm}>
