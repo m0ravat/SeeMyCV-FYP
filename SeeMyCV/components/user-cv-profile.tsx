@@ -11,6 +11,9 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Mail,
   Phone,
@@ -643,6 +646,10 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedEducation, setSelectedEducation] = useState<Education | null>(null);
+  const [showAddExperienceDialog, setShowAddExperienceDialog] = useState(false);
+  const [showAddEducationDialog, setShowAddEducationDialog] = useState(false);
+  const [showAddSkillDialog, setShowAddSkillDialog] = useState(false);
+  const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
   
   // Fetch real user data if this is own profile
   const { userData, loading } = useUser();
@@ -684,7 +691,19 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
   };
 
   const handleAddSkill = () => {
-    console.log("Add skill clicked");
+    setShowAddSkillDialog(true);
+  };
+
+  const handleAddExperience = () => {
+    setShowAddExperienceDialog(true);
+  };
+
+  const handleAddProject = () => {
+    setShowAddProjectDialog(true);
+  };
+
+  const handleAddEducation = () => {
+    setShowAddEducationDialog(true);
   };
 
   const handleEditSkill = () => {
@@ -737,7 +756,71 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
 
   return (
     <div className="max-w-5xl mx-auto">
-      <SkillDetailModal
+      {/* Add Experience Dialog */}
+      <Dialog open={showAddExperienceDialog} onOpenChange={setShowAddExperienceDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Experience</DialogTitle>
+          </DialogHeader>
+          <AddExperienceForm 
+            onClose={() => setShowAddExperienceDialog(false)} 
+            onSuccess={() => {
+              setShowAddExperienceDialog(false);
+              // Refresh user data
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Education Dialog */}
+      <Dialog open={showAddEducationDialog} onOpenChange={setShowAddEducationDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Education</DialogTitle>
+          </DialogHeader>
+          <AddEducationForm 
+            onClose={() => setShowAddEducationDialog(false)} 
+            onSuccess={() => {
+              setShowAddEducationDialog(false);
+              // Refresh user data
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Skill Dialog */}
+      <Dialog open={showAddSkillDialog} onOpenChange={setShowAddSkillDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Skill</DialogTitle>
+          </DialogHeader>
+          <AddSkillForm 
+            onClose={() => setShowAddSkillDialog(false)} 
+            onSuccess={() => {
+              setShowAddSkillDialog(false);
+              // Refresh user data
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Project Dialog */}
+      <Dialog open={showAddProjectDialog} onOpenChange={setShowAddProjectDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Project</DialogTitle>
+          </DialogHeader>
+          <AddProjectForm 
+            onClose={() => setShowAddProjectDialog(false)} 
+            onSuccess={() => {
+              setShowAddProjectDialog(false);
+              // Refresh user data
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Detail Modals */}
         isOpen={!!selectedSkill}
         onClose={() => setSelectedSkill(null)}
         skill={selectedSkill}
@@ -1080,5 +1163,392 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
         </div>
       </div>
     </div>
+  );
+}
+
+// Add Experience Form Component
+function AddExperienceForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    company: "",
+    location: "",
+    startDate: "",
+    endDate: "",
+    current: false,
+    description: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/cv/add-experience", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) throw new Error("Failed to add experience");
+      onSuccess();
+    } catch (error) {
+      console.error("[v0] Error adding experience:", error);
+      alert("Failed to add experience");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="title">Job Title</Label>
+        <Input
+          id="title"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="company">Company</Label>
+        <Input
+          id="company"
+          value={formData.company}
+          onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="location">Location</Label>
+        <Input
+          id="location"
+          value={formData.location}
+          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="startDate">Start Date</Label>
+          <Input
+            id="startDate"
+            type="month"
+            value={formData.startDate}
+            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="endDate">End Date</Label>
+          <Input
+            id="endDate"
+            type="month"
+            value={formData.endDate}
+            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+            disabled={formData.current}
+          />
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="current"
+          checked={formData.current}
+          onChange={(e) => setFormData({ ...formData, current: e.target.checked, endDate: "" })}
+        />
+        <Label htmlFor="current">Currently working here</Label>
+      </div>
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          rows={4}
+        />
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Adding..." : "Add Experience"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Add Education Form Component
+function AddEducationForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    institution: "",
+    degree: "",
+    location: "",
+    startDate: "",
+    endDate: "",
+    grade: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/cv/add-education", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) throw new Error("Failed to add education");
+      onSuccess();
+    } catch (error) {
+      console.error("[v0] Error adding education:", error);
+      alert("Failed to add education");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="institution">Institution</Label>
+        <Input
+          id="institution"
+          value={formData.institution}
+          onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="degree">Degree</Label>
+        <Input
+          id="degree"
+          value={formData.degree}
+          onChange={(e) => setFormData({ ...formData, degree: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="location">Location</Label>
+        <Input
+          id="location"
+          value={formData.location}
+          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="startDate">Start Date</Label>
+          <Input
+            id="startDate"
+            type="month"
+            value={formData.startDate}
+            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="endDate">End Date</Label>
+          <Input
+            id="endDate"
+            type="month"
+            value={formData.endDate}
+            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+          />
+        </div>
+      </div>
+      <div>
+        <Label htmlFor="grade">Grade (Optional)</Label>
+        <Input
+          id="grade"
+          value={formData.grade}
+          onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
+        />
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Adding..." : "Add Education"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Add Skill Form Component
+function AddSkillForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    level: "intermediate" as const,
+    isSoftSkill: false,
+    description: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/cv/add-skill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) throw new Error("Failed to add skill");
+      onSuccess();
+    } catch (error) {
+      console.error("[v0] Error adding skill:", error);
+      alert("Failed to add skill");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="name">Skill Name</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="level">Level</Label>
+        <select
+          id="level"
+          value={formData.level}
+          onChange={(e) => setFormData({ ...formData, level: e.target.value as any })}
+          className="w-full border border-input rounded px-3 py-2"
+        >
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+          <option value="expert">Expert</option>
+        </select>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="isSoftSkill"
+          checked={formData.isSoftSkill}
+          onChange={(e) => setFormData({ ...formData, isSoftSkill: e.target.checked })}
+        />
+        <Label htmlFor="isSoftSkill">Soft Skill</Label>
+      </div>
+      <div>
+        <Label htmlFor="description">Description (Optional)</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          rows={3}
+        />
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Adding..." : "Add Skill"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Add Project Form Component
+function AddProjectForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    technologies: "",
+    link: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/cv/add-project", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          technologies: formData.technologies.split(",").map((t) => t.trim()),
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to add project");
+      onSuccess();
+    } catch (error) {
+      console.error("[v0] Error adding project:", error);
+      alert("Failed to add project");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="name">Project Name</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          rows={4}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="technologies">Technologies (comma-separated)</Label>
+        <Input
+          id="technologies"
+          value={formData.technologies}
+          onChange={(e) => setFormData({ ...formData, technologies: e.target.value })}
+          placeholder="React, TypeScript, Tailwind"
+        />
+      </div>
+      <div>
+        <Label htmlFor="link">Project Link (Optional)</Label>
+        <Input
+          id="link"
+          type="url"
+          value={formData.link}
+          onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+          placeholder="https://..."
+        />
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Adding..." : "Add Project"}
+        </Button>
+      </div>
+    </form>
   );
 }
