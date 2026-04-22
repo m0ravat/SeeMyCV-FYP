@@ -831,12 +831,10 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
                       {displayData.website.replace("https://", "")}
                     </a>
                   </>
-                  )}
-                ))
-              )}
+                )}
+              </div>
             </div>
           </section>
-          )}
 
           {/* Education Section */}
           <section>
