@@ -130,6 +130,7 @@ export async function GET() {
           location: profile.person_location,
           linkedinUrl: profile.linkedin_url,
           personalWebsite: profile.personal_website,
+          contactPublic: profile.contact_public,
           aboutMe: cv?.about_me || '',
         },
         cv: {
