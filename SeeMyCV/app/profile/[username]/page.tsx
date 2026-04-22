@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { UserCVProfile } from "@/components/user-cv-profile";
 import { ArrowLeft } from "lucide-react";
 
+function formatDate(raw: string | null | undefined): string {
+  if (!raw) return "";
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw;
+  return d.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
+}
+
 function transformSkills(dbSkills: any[]) {
   const grouped: { [key: string]: any[] } = {};
   dbSkills.forEach((skill) => {
@@ -28,8 +35,8 @@ function transformExperiences(dbExperiences: any[]) {
     title: exp.title || "",
     company: exp.summary || "",
     location: exp.location || "",
-    startDate: exp.start_date || "",
-    endDate: exp.end_date || "",
+    startDate: formatDate(exp.start_date),
+    endDate: formatDate(exp.end_date),
     current: !exp.end_date,
     description: exp.description || "",
     keySkills: exp.key_skills || "",
@@ -46,8 +53,8 @@ function transformProjects(dbProjects: any[]) {
       ? proj.skills.split(",").map((s: string) => s.trim()).filter(Boolean)
       : [],
     url: proj.link || "",
-    startDate: proj.start_date || "",
-    endDate: proj.end_date || "",
+    startDate: formatDate(proj.start_date),
+    endDate: formatDate(proj.end_date),
     bullets: [],
   }));
 }
@@ -58,8 +65,8 @@ function transformEducation(dbEducation: any[]) {
     degree: "",              // education table has no degree name column
     institution: edu.institute_name || "",
     location: edu.location || "",
-    startDate: edu.start_date || "",
-    endDate: edu.end_date || "",
+    startDate: formatDate(edu.start_date),
+    endDate: formatDate(edu.end_date),
     grade: edu.achieved || "",
     target: edu.target || "",
     gradeDescription: edu.grade_description || "",
@@ -71,8 +78,8 @@ function transformCertifications(dbCerts: any[]) {
     id: cert.certification_id?.toString() || "",
     name: cert.title || "",
     issuer: cert.institute || "",
-    date: cert.issue_date || "",
-    expiryDate: cert.expiry_date || "",
+    date: formatDate(cert.issue_date),
+    expiryDate: formatDate(cert.expiry_date),
     description: cert.description || cert.summary || "",
     url: cert.link || "",
     skills: cert.skills
