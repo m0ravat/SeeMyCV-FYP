@@ -34,8 +34,9 @@ export async function GET(
 
     const profile = profileResult.rows[0];
 
-    // Block access if account is private
-    if (profile.isSearchable === false) {
+    // Block access if account is private (column name is mixed-case, pg returns lowercase)
+    const isSearchable = profile.isSearchable ?? profile.issearchable;
+    if (isSearchable === false) {
       return NextResponse.json({ error: 'private' }, { status: 403 });
     }
 
@@ -67,7 +68,7 @@ export async function GET(
         location: profile.person_location,
         linkedinUrl: profile.linkedin_url,
         personalWebsite: profile.personal_website,
-        contactPublic: profile.contactPublic,
+        contactPublic: profile.contactPublic ?? profile.contactpublic,
         aboutMe: cv?.about_me || '',
       },
       cv: {
