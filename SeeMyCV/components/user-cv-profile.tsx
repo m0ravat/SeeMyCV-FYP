@@ -882,7 +882,8 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
                     </p>
                   )}
                 </div>
-              ))}
+                ))
+              )}
             </div>
           </section>
 
