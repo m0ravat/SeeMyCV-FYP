@@ -267,11 +267,15 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      // First, create the user account
+      // Create the user account with profile data
       const signupResponse = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credentials),
+        body: JSON.stringify({
+          username: credentials.username,
+          password: credentials.password,
+          profileData: profileData,
+        }),
       });
 
       const signupData = await signupResponse.json();
@@ -282,7 +286,7 @@ export default function SignupPage() {
         return;
       }
 
-      // Then, automatically log them in
+      // Automatically log them in
       const loginResponse = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
