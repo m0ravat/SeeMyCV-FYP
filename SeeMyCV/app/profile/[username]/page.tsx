@@ -3,12 +3,29 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { UserCVProfile } from "@/components/user-cv-profile";
-import { ArrowLeft, Home } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function ProfilePage() {
   const params = useParams();
-  const username = params?.username as string | undefined;
+  const [username, setUsername] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    // Set username only after component is mounted on client
+    if (params?.username) {
+      setUsername(params.username as string);
+    }
+    setIsMounted(true);
+  }, [params?.username]);
+
+  // Return nothing until we know if this is a username route or own profile
+  if (!isMounted) {
+    return null;
+  }
+
+  const isOwnProfile = !username;
 
   return (
     <div className="min-h-screen bg-background">
@@ -16,10 +33,10 @@ export default function ProfilePage() {
       <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href={username ? "/dashboard" : "/dashboard"}>
+            <Link href="/dashboard">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                {username ? "Back" : "Back to Dashboard"}
+                Back to Dashboard
               </Button>
             </Link>
           </div>
@@ -35,11 +52,10 @@ export default function ProfilePage() {
 
       {/* Main Content */}
       <main className="py-8 px-4">
-        {username ? (
-          <UserCVProfile isOwnProfile={false} username={username} />
-        ) : (
-          <UserCVProfile isOwnProfile={true} />
-        )}
+        <UserCVProfile 
+          isOwnProfile={isOwnProfile} 
+          username={username || undefined}
+        />
       </main>
 
       {/* Footer */}

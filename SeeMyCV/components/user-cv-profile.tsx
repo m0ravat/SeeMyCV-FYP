@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@/lib/use-user";
 import { Button } from "@/components/ui/button";
 import {
@@ -96,6 +96,7 @@ interface CVProfileData {
 interface UserCVProfileProps {
   data?: CVProfileData;
   isOwnProfile?: boolean;
+  username?: string;
   onEdit?: () => void;
 }
 
