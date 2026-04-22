@@ -61,7 +61,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="font-semibold text-foreground mb-4">CVConnect</h3>
+              <h3 className="font-semibold text-foreground mb-4">SeeMyCV</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
                   <Link href="/" className="hover:text-foreground transition-colors">
@@ -152,7 +152,7 @@ export default function DashboardPage() {
           </div>
           <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
             <p>
-              2024 CVConnect. All rights reserved. Built with privacy in mind -
+              2026 SeeMyCV. All rights reserved. Built with privacy in mind -
               no profile pictures to prevent discrimination.
             </p>
           </div>

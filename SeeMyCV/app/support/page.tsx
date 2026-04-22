@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
-  title: "Customer Support - CVConnect",
-  description: "Get help with your CVConnect account, refunds, and general enquiries.",
+  title: "Customer Support - SeeMyCV",
+  description: "Get help with your SeeMyCV account, refunds, and general enquiries.",
 };
 
 export default function SupportPage() {

@@ -68,7 +68,7 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <FileText className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="hidden sm:block">CVConnect</span>
+              <span className="hidden sm:block">SeeMyCV</span>
             </button>
 
             {/* Search Bar - Desktop */}

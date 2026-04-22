@@ -232,7 +232,7 @@ export function SettingsPage({ isPremium = false, onUpgrade }: SettingsPageProps
             <CardHeader>
               <CardTitle>Subscription</CardTitle>
               <CardDescription>
-                Manage your CVConnect subscription
+                Manage your SeeMyCV subscription
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -244,7 +244,7 @@ export function SettingsPage({ isPremium = false, onUpgrade }: SettingsPageProps
                       <div>
                         <p className="font-medium text-foreground">Premium Plan</p>
                         <p className="text-sm text-muted-foreground">
-                          Renews on February 15, 2024
+                          Lifetime access — one-time payment
                         </p>
                       </div>
                     </div>

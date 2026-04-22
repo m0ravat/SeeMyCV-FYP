@@ -51,13 +51,13 @@ interface BlogPost {
 const mockPosts: BlogPost[] = [
   {
     id: "1",
-    title: "10 Tips for Writing an Effective CV in 2024",
+    title: "10 Tips for Writing an Effective CV in 2026",
     summary: "Learn the essential strategies for creating a CV that stands out to recruiters and passes ATS systems.",
     mainContent: "Full content about CV tips...",
     htmlSection: "<h2>Key Points</h2><p>This section can contain HTML content.</p>",
     category: "CV Tips",
     status: "published",
-    publishedAt: "January 15, 2024",
+    publishedAt: "January 15, 2026",
   },
   {
     id: "2",
@@ -67,7 +67,7 @@ const mockPosts: BlogPost[] = [
     htmlSection: "<h2>Tech Stack</h2><p>Showcase your technical expertise.</p>",
     category: "Industry Guides",
     status: "published",
-    publishedAt: "January 10, 2024",
+    publishedAt: "January 10, 2026",
   },
   {
     id: "3",

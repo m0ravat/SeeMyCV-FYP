@@ -154,7 +154,7 @@ export default function PublicProfilePage() {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">CV</span>
             </div>
-            <span className="font-bold text-xl text-foreground">CVConnect</span>
+            <span className="font-bold text-xl text-foreground">SeeMyCV</span>
           </Link>
           <div className="w-[140px]" />
         </div>
@@ -197,7 +197,7 @@ export default function PublicProfilePage() {
 
       <footer className="border-t border-border py-6 mt-12">
         <div className="max-w-7xl mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>CVConnect - Professional CV Sharing Platform</p>
+          <p>SeeMyCV - Professional CV Sharing Platform</p>
         </div>
       </footer>
     </div>

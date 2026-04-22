@@ -72,7 +72,7 @@ export default function LandingPage() {
       role: "Software Engineer",
       company: "TechCorp",
       content:
-        "CVConnect helped me land my dream job. The AI feedback was incredibly helpful in optimizing my CV for tech roles.",
+        "SeeMyCV helped me land my dream job. The AI feedback was incredibly helpful in optimizing my CV for tech roles.",
       rating: 5,
     },
     {
@@ -104,7 +104,7 @@ export default function LandingPage() {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <FileText className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold text-foreground">CVConnect</span>
+              <span className="text-xl font-bold text-foreground">SeeMyCV</span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-8">
@@ -179,7 +179,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">50,000+</span> professionals trust CVConnect
+                  <span className="font-semibold text-foreground">50,000+</span> professionals trust SeeMyCV
                 </div>
               </div>
             </div>
@@ -300,7 +300,7 @@ export default function LandingPage() {
               Loved by Professionals
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              See what our users have to say about their experience with CVConnect.
+              See what our users have to say about their experience with SeeMyCV.
             </p>
           </div>
 
@@ -412,7 +412,7 @@ export default function LandingPage() {
             Ready to Build Your Perfect CV?
           </h2>
           <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of professionals who have already landed their dream jobs with CVConnect.
+            Join thousands of professionals who have already landed their dream jobs with SeeMyCV.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/dashboard">
@@ -440,7 +440,7 @@ export default function LandingPage() {
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                   <FileText className="w-5 h-5 text-primary-foreground" />
                 </div>
-                <span className="text-lg font-bold text-foreground">CVConnect</span>
+                <span className="text-lg font-bold text-foreground">SeeMyCV</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Build your career with professional CVs and connect with opportunities.
@@ -502,7 +502,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-border pt-8 text-center text-sm text-muted-foreground">
-            <p>2024 CVConnect. All rights reserved. Built with privacy in mind - no profile pictures to prevent discrimination.</p>
+              <p>2026 SeeMyCV. All rights reserved. Built with privacy in mind - no profile pictures to prevent discrimination.</p>
           </div>
         </div>
       </footer>

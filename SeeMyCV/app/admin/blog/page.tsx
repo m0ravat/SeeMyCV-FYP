@@ -75,14 +75,14 @@ interface BlogPost {
 const mockPosts: BlogPost[] = [
   {
     id: "1",
-    title: "10 Tips for Writing an Effective CV in 2024",
+    title: "10 Tips for Writing an Effective CV in 2026",
     excerpt:
       "Learn the essential strategies for creating a CV that stands out to recruiters and passes ATS systems.",
     content: "",
-    author: "CVConnect Team",
+    author: "SeeMyCV Team",
     category: "CV Tips",
     tags: ["CV Writing", "Job Search", "Career Advice"],
-    publishedAt: "January 15, 2024",
+    publishedAt: "January 15, 2026",
     readTime: "5 min read",
     views: 1234,
     status: "published",
@@ -96,7 +96,7 @@ const mockPosts: BlogPost[] = [
     author: "Sarah Mitchell",
     category: "Industry Guides",
     tags: ["Tech", "Software Development", "CV Tips"],
-    publishedAt: "January 10, 2024",
+    publishedAt: "January 10, 2026",
     readTime: "8 min read",
     views: 892,
     status: "published",
@@ -110,7 +110,7 @@ const mockPosts: BlogPost[] = [
     author: "James Rodriguez",
     category: "Career Change",
     tags: ["Career Change", "Skills", "CV Format"],
-    publishedAt: "January 5, 2024",
+    publishedAt: "January 5, 2026",
     readTime: "6 min read",
     views: 756,
     status: "published",
@@ -121,7 +121,7 @@ const mockPosts: BlogPost[] = [
     excerpt:
       "Learn how Applicant Tracking Systems work and how to optimize your CV to pass automated screening.",
     content: "",
-    author: "CVConnect Team",
+    author: "SeeMyCV Team",
     category: "CV Tips",
     tags: ["ATS", "Job Applications", "CV Optimization"],
     publishedAt: "December 28, 2023",
@@ -148,7 +148,7 @@ const mockPosts: BlogPost[] = [
     title: "Draft: Networking Tips for Job Seekers",
     excerpt: "Building professional connections that lead to career opportunities.",
     content: "",
-    author: "CVConnect Team",
+    author: "SeeMyCV Team",
     category: "Career Advice",
     tags: ["Networking", "Career Development"],
     publishedAt: "",
@@ -246,7 +246,7 @@ export default function AdminBlogPage() {
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                   <FileText className="w-5 h-5 text-primary-foreground" />
                 </div>
-                <span className="hidden sm:block">CVConnect</span>
+                  <span className="hidden sm:block">SeeMyCV</span>
               </Link>
 
               <Badge variant="secondary" className="gap-1">
@@ -676,7 +676,7 @@ export default function AdminBlogPage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center text-sm text-muted-foreground">
             <p>
-              2024 CVConnect Admin Dashboard. All rights reserved.
+              2026 SeeMyCV Admin Dashboard. All rights reserved.
             </p>
           </div>
         </div>

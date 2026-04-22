@@ -44,13 +44,13 @@ interface BlogPost {
 const mockPosts: BlogPost[] = [
   {
     id: "1",
-    title: "10 Tips for Writing an Effective CV in 2024",
+    title: "10 Tips for Writing an Effective CV in 2026",
     excerpt:
       "Learn the essential strategies for creating a CV that stands out to recruiters and passes ATS systems.",
-    author: "CVConnect Team",
+    author: "SeeMyCV Team",
     category: "CV Tips",
     tags: ["CV Writing", "Job Search", "Career Advice"],
-    publishedAt: "January 15, 2024",
+    publishedAt: "January 15, 2026",
     readTime: "5 min read",
     views: 1234,
   },
@@ -62,7 +62,7 @@ const mockPosts: BlogPost[] = [
     author: "Sarah Mitchell",
     category: "Industry Guides",
     tags: ["Tech", "Software Development", "CV Tips"],
-    publishedAt: "January 10, 2024",
+    publishedAt: "January 10, 2026",
     readTime: "8 min read",
     views: 892,
   },
@@ -74,7 +74,7 @@ const mockPosts: BlogPost[] = [
     author: "James Rodriguez",
     category: "Career Change",
     tags: ["Career Change", "Skills", "CV Format"],
-    publishedAt: "January 5, 2024",
+    publishedAt: "January 5, 2026",
     readTime: "6 min read",
     views: 756,
   },
@@ -83,7 +83,7 @@ const mockPosts: BlogPost[] = [
     title: "Understanding ATS: How to Beat the Bots",
     excerpt:
       "Learn how Applicant Tracking Systems work and how to optimize your CV to pass automated screening.",
-    author: "CVConnect Team",
+    author: "SeeMyCV Team",
     category: "CV Tips",
     tags: ["ATS", "Job Applications", "CV Optimization"],
     publishedAt: "December 28, 2023",
@@ -107,7 +107,7 @@ const mockPosts: BlogPost[] = [
     title: "Cover Letters That Get Results",
     excerpt:
       "Master the art of writing compelling cover letters that complement your CV and grab attention.",
-    author: "CVConnect Team",
+    author: "SeeMyCV Team",
     category: "Career Advice",
     tags: ["Cover Letters", "Job Applications", "Writing Tips"],
     publishedAt: "December 15, 2023",
@@ -149,7 +149,7 @@ export default function BlogPage() {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <FileText className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold text-foreground">CVConnect</span>
+              <span className="text-xl font-bold text-foreground">SeeMyCV</span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-8">
@@ -320,7 +320,7 @@ export default function BlogPage() {
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                   <FileText className="w-5 h-5 text-primary-foreground" />
                 </div>
-                <span className="text-lg font-bold text-foreground">CVConnect</span>
+                <span className="text-lg font-bold text-foreground">SeeMyCV</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Build your career with professional CVs and connect with opportunities.
@@ -382,7 +382,7 @@ export default function BlogPage() {
             </div>
           </div>
           <div className="border-t border-border pt-8 text-center text-sm text-muted-foreground">
-            <p>2024 CVConnect. All rights reserved. Built with privacy in mind - no profile pictures to prevent discrimination.</p>
+              <p>2026 SeeMyCV. All rights reserved. Built with privacy in mind - no profile pictures to prevent discrimination.</p>
           </div>
         </div>
       </footer>
