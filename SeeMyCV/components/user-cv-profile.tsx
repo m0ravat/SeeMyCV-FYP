@@ -1305,7 +1305,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
           </section>
         </div>
       </div>
-    </form>
+    </div>
   );
 }
 
