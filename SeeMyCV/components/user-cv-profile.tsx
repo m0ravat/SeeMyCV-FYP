@@ -718,7 +718,12 @@ function EducationDetailModal({
   );
 }
 
-export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit }: UserCVProfileProps) {
+const emptyData: CVProfileData = {
+  name: "", location: "", phone: "", email: "", website: "", github: "", linkedin: "",
+  aboutMe: "", skills: [], experience: [], projects: [], education: [], certifications: [],
+};
+
+export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfileProps) {
   const [copied, setCopied] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<SkillItem | null>(null);
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
@@ -738,13 +743,12 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
   // Fetch real user data if this is own profile
   const { userData, loading, refetch } = useUser();
   
-  // Use real data if available, NEVER fall back to hardcoded data for own profile
+  // Use real data if available, show empty while loading — never flash hardcoded data
   const displayData = (() => {
-    if (isOwnProfile && userData) {
-      // For own profile, ONLY use database data
+    if (isOwnProfile) {
+      if (!userData) return emptyData;
       const cv = userData.cv;
       const profile = userData.profile;
-      
       return {
         name: `${profile.firstName} ${profile.lastName}`,
         location: profile.location || "",
@@ -761,9 +765,8 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
         certifications: cv.certifications?.length > 0 ? transformCertifications(cv.certifications) : [],
       };
     }
-    
-    // For viewing other profiles, use the data prop
-    return data;
+    // For viewing other profiles, use passed data prop (or empty while fetching)
+    return data ?? emptyData;
   })();
   
   // Get contact visibility preference from userData
@@ -887,6 +890,18 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
       alert("Failed to delete certification");
     }
   };
+
+  if (isOwnProfile && loading) {
+    return (
+      <div className="max-w-5xl mx-auto animate-pulse space-y-6 py-6">
+        <div className="h-8 bg-muted rounded w-1/3" />
+        <div className="h-4 bg-muted rounded w-1/4" />
+        <div className="h-24 bg-muted rounded" />
+        <div className="h-4 bg-muted rounded w-1/2" />
+        <div className="h-4 bg-muted rounded w-2/5" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto">
