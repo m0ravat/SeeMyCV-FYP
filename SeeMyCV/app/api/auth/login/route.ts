@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { compare } from 'bcrypt';
+import { scryptSync, timingSafeEqual } from 'crypto';
 import { createToken } from '@/lib/jwt';
 import { cookies } from 'next/headers';
 import { Pool } from 'pg';
@@ -7,6 +7,16 @@ import { Pool } from 'pg';
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
+
+function verifyPassword(password: string, hash: string): boolean {
+  try {
+    const [salt, key] = hash.split(':');
+    const derivedKey = scryptSync(password, salt, 64).toString('hex');
+    return timingSafeEqual(Buffer.from(derivedKey), Buffer.from(key));
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(request: NextRequest) {
   const client = await pool.connect();
@@ -38,7 +48,7 @@ export async function POST(request: NextRequest) {
     const user = userResult.rows[0];
 
     // Verify password
-    const isPasswordValid = await compare(password, user.password);
+    const isPasswordValid = verifyPassword(password, user.password);
 
     if (!isPasswordValid) {
       return NextResponse.json(
