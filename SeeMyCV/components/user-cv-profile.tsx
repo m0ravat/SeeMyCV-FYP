@@ -1299,7 +1299,9 @@ function AddEducationForm({ onClose, onSuccess }: { onClose: () => void; onSucce
     location: "",
     startDate: "",
     endDate: "",
-    grade: "",
+    target: "",
+    achieved: "",
+    gradeDescription: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1371,12 +1373,33 @@ function AddEducationForm({ onClose, onSuccess }: { onClose: () => void; onSucce
           />
         </div>
       </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="target">Target Grade (Optional)</Label>
+          <Input
+            id="target"
+            value={formData.target}
+            onChange={(e) => setFormData({ ...formData, target: e.target.value })}
+            placeholder="e.g., 3.8"
+          />
+        </div>
+        <div>
+          <Label htmlFor="achieved">Achieved Grade (Optional)</Label>
+          <Input
+            id="achieved"
+            value={formData.achieved}
+            onChange={(e) => setFormData({ ...formData, achieved: e.target.value })}
+            placeholder="e.g., 3.7"
+          />
+        </div>
+      </div>
       <div>
-        <Label htmlFor="grade">Grade (Optional)</Label>
+        <Label htmlFor="gradeDescription">Grade Description (Optional)</Label>
         <Input
-          id="grade"
-          value={formData.grade}
-          onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
+          id="gradeDescription"
+          value={formData.gradeDescription}
+          onChange={(e) => setFormData({ ...formData, gradeDescription: e.target.value })}
+          placeholder="e.g., First Class Honours"
         />
       </div>
       <div className="flex gap-2 justify-end">

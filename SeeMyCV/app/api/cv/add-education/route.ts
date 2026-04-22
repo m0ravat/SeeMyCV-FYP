@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { institution, degree, location, startDate, endDate, grade } = await req.json();
+    const { institution, degree, location, startDate, endDate, target, achieved, gradeDescription } = await req.json();
 
     // Get user's CV
     const profileResult = await query(
@@ -38,10 +38,10 @@ export async function POST(req: Request) {
 
     // Insert education
     const insertResult = await query(
-      `INSERT INTO education (cv_id, institute_name, location, start_date, end_date, achieved)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO education (cv_id, institute_name, location, start_date, end_date, target, achieved, grade_description)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING education_id`,
-      [cvId, institution, location || null, startDate || null, endDate || null, grade || null]
+      [cvId, institution, location || null, startDate || null, endDate || null, target || null, achieved || null, gradeDescription || null]
     );
 
     return NextResponse.json({
