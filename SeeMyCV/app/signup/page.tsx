@@ -257,16 +257,49 @@ export default function SignupPage() {
     });
   };
 
-  const handleStep1Submit = (e: React.FormEvent) => {
+  const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!credentials.username || !credentials.password) {
+      alert("Please fill in all fields");
+      return;
+    }
     setStep(2);
   };
 
   const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate processing - instant redirect for demo
-    router.push("/dashboard");
+    try {
+      // Call signup API
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: credentials.username,
+          password: credentials.password,
+          firstName: profileData.firstName,
+          lastName: profileData.lastName,
+          email: profileData.email,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || "Signup failed");
+        setIsLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+      console.log("[v0] Signup successful:", data);
+      
+      // Redirect to dashboard or profile completion
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("[v0] Signup error:", error);
+      alert("An error occurred during signup");
+      setIsLoading(false);
+    }
   };
 
   const benefits = [
