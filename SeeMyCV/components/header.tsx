@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLogout } from "@/lib/use-logout";
@@ -38,6 +39,15 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
   const [searchQuery, setSearchQuery] = useState("");
   const { logout } = useLogout();
   const { userData, loading } = useUser();
+  const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return;
+    router.push(`/profile/${trimmed}`);
+    setSearchQuery("");
+  };
 
   const navItems: Array<{ id: string; label: string; icon: typeof Home; href: string | null; badge?: number }> = [
     { id: "feed", label: "Feed", icon: Home, href: null },
@@ -62,16 +72,16 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
             </button>
 
             {/* Search Bar - Desktop */}
-            <div className="hidden md:flex relative">
+            <form onSubmit={handleSearch} className="hidden md:flex relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search for other Users"
+                placeholder="Search by username..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 w-64 lg:w-80 bg-secondary border-border"
               />
-            </div>
+            </form>
           </div>
 
           {/* Desktop Navigation */}
@@ -190,16 +200,16 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
 
         {/* Mobile Search */}
         <div className="md:hidden pb-3">
-          <div className="relative">
+          <form onSubmit={handleSearch} className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search CVs..."
+              placeholder="Search by username..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 w-full bg-secondary"
             />
-          </div>
+          </form>
         </div>
 
         {/* Mobile Navigation */}
