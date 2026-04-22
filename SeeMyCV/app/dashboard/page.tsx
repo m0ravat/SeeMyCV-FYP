@@ -8,10 +8,14 @@ import { ProfilePage } from "@/components/profile-page";
 import { CVBuilder } from "@/components/cv-builder";
 import { PremiumPage } from "@/components/premium-page";
 import { SettingsPage } from "@/components/settings-page";
+import { useUser } from "@/lib/use-user";
 
 export default function DashboardPage() {
   const [currentPage, setCurrentPage] = useState("feed");
-  const [isPremium, setIsPremium] = useState(false);
+  const { userData, loading } = useUser();
+
+  // Use premium status from fetched user data
+  const isPremium = userData?.user.isPremium || false;
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page);
@@ -22,7 +26,7 @@ export default function DashboardPage() {
   };
 
   const handleSubscribe = () => {
-    setIsPremium(true);
+    // Premium status is now managed by backend
     setCurrentPage("feed");
   };
 

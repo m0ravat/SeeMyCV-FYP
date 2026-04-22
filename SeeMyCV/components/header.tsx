@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLogout } from "@/lib/use-logout";
+import { useUser } from "@/lib/use-user";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +37,7 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { logout } = useLogout();
+  const { userData, loading } = useUser();
 
   const navItems: Array<{ id: string; label: string; icon: typeof Home; href: string | null; badge?: number }> = [
     { id: "feed", label: "Feed", icon: Home, href: null },
@@ -147,8 +149,8 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-3 py-2">
-                  <p className="font-medium">John Doe</p>
-                  <p className="text-sm text-muted-foreground">john.doe@email.com</p>
+                  <p className="font-medium">{userData?.profile.firstName} {userData?.profile.lastName}</p>
+                  <p className="text-sm text-muted-foreground">{userData?.profile.email}</p>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>

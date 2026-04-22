@@ -3,10 +3,13 @@
 import { Header } from "@/components/header";
 import { SettingsPage } from "@/components/settings-page";
 import { useState } from "react";
+import { useUser } from "@/lib/use-user";
 
 export default function SettingsRoute() {
   const [currentPage, setCurrentPage] = useState("settings");
-  const [isPremium, setIsPremium] = useState(false);
+  const { userData, loading } = useUser();
+  
+  const isPremium = userData?.user.isPremium || false;
 
   const handleUpgrade = () => {
     // Handle upgrade logic

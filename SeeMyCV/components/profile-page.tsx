@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useUser } from "@/lib/use-user";
 import {
   Select,
   SelectContent,
@@ -80,87 +81,46 @@ export function ProfilePage() {
   const [privacyStatus, setPrivacyStatus] = useState("open");
   const [profileLinkCopied, setProfileLinkCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const { userData, loading } = useUser();
 
-  // Mock profile data
-  const [profile, setProfile] = useState({
-    name: "John Doe",
-    title: "Senior Software Developer",
-    location: "London, UK",
-    email: "john.doe@email.com",
-    website: "johndoe.dev",
-    bio: "Passionate software developer with 8+ years of experience building scalable web applications. I specialize in React, Node.js, and cloud architecture. Always eager to learn new technologies and share knowledge with the community.",
-    skills: ["React", "TypeScript", "Node.js", "Python", "AWS", "Docker", "GraphQL", "PostgreSQL"],
-  });
+  // Use real user data from hook
+  const profile = {
+    name: `${userData?.profile.firstName} ${userData?.profile.lastName}`,
+    location: userData?.profile.location || "Not specified",
+    email: userData?.profile.email || "",
+    website: userData?.profile.personalWebsite || "",
+    bio: userData?.profile.aboutMe || "No bio yet",
+    skills: userData?.cv.skills?.map(s => s.name) || [],
+  };
 
-  const [experiences] = useState<Experience[]>([
-    {
-      id: "1",
-      title: "Senior Software Developer",
-      company: "TechCorp Ltd",
-      location: "London, UK",
-      startDate: "2021",
-      endDate: "",
-      current: true,
-      description: "Leading development of customer-facing applications using React and Node.js. Mentoring junior developers and driving best practices across the team.",
-    },
-    {
-      id: "2",
-      title: "Software Developer",
-      company: "Digital Solutions",
-      location: "Manchester, UK",
-      startDate: "2018",
-      endDate: "2021",
-      current: false,
-      description: "Built and maintained e-commerce platforms. Implemented CI/CD pipelines and improved deployment processes.",
-    },
-    {
-      id: "3",
-      title: "Junior Developer",
-      company: "StartupXYZ",
-      location: "Birmingham, UK",
-      startDate: "2016",
-      endDate: "2018",
-      current: false,
-      description: "Developed features for a SaaS product. Gained experience in agile methodologies and test-driven development.",
-    },
-  ]);
+  const experiences = userData?.cv.experiences?.map((exp: any) => ({
+    id: exp.experience_id?.toString(),
+    title: exp.title,
+    company: exp.summary,
+    location: exp.location,
+    startDate: exp.start_date,
+    endDate: exp.end_date,
+    current: !exp.end_date,
+    description: exp.description,
+  })) || [];
 
-  const [education] = useState<Education[]>([
-    {
-      id: "1",
-      degree: "MSc Computer Science",
-      institution: "University of Manchester",
-      location: "Manchester, UK",
-      startDate: "2014",
-      endDate: "2016",
-      grade: "Distinction",
-    },
-    {
-      id: "2",
-      degree: "BSc Software Engineering",
-      institution: "University of Birmingham",
-      location: "Birmingham, UK",
-      startDate: "2011",
-      endDate: "2014",
-      grade: "First Class Honours",
-    },
-  ]);
+  const education = userData?.cv.education?.map((edu: any) => ({
+    id: edu.education_id?.toString(),
+    degree: edu.institute_name,
+    institution: edu.institute_name,
+    location: edu.location,
+    startDate: edu.start_date,
+    endDate: edu.end_date,
+    grade: edu.achieved,
+  })) || [];
 
-  const [certifications] = useState<Certification[]>([
-    {
-      id: "1",
-      name: "AWS Solutions Architect",
-      issuer: "Amazon Web Services",
-      date: "2023",
-      url: "https://aws.amazon.com/certification",
-    },
-    {
-      id: "2",
-      name: "Google Cloud Professional",
-      issuer: "Google",
-      date: "2022",
-    },
-  ]);
+  const certifications = userData?.cv.certifications?.map((cert: any) => ({
+    id: cert.certification_id?.toString(),
+    name: cert.title,
+    issuer: cert.institute,
+    date: cert.issue_date,
+    url: cert.link,
+  })) || [];
 
   const privacyOptions = [
     { value: "open", label: "Open to all messages", icon: Globe },
