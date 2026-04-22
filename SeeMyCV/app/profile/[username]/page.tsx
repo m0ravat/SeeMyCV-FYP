@@ -5,27 +5,10 @@ import { Button } from "@/components/ui/button";
 import { UserCVProfile } from "@/components/user-cv-profile";
 import { ArrowLeft } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
 
 export default function ProfilePage() {
   const params = useParams();
-  const [username, setUsername] = useState<string | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    // Set username only after component is mounted on client
-    if (params?.username) {
-      setUsername(params.username as string);
-    }
-    setIsMounted(true);
-  }, [params?.username]);
-
-  // Return nothing until we know if this is a username route or own profile
-  if (!isMounted) {
-    return null;
-  }
-
-  const isOwnProfile = !username;
+  const username = params?.username as string | undefined;
 
   return (
     <div className="min-h-screen bg-background">
@@ -53,8 +36,8 @@ export default function ProfilePage() {
       {/* Main Content */}
       <main className="py-8 px-4">
         <UserCVProfile 
-          isOwnProfile={isOwnProfile} 
-          username={username || undefined}
+          isOwnProfile={false} 
+          username={username}
         />
       </main>
 

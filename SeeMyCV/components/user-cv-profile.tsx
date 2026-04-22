@@ -485,8 +485,10 @@ function EducationDetailModal({
   );
 }
 
-export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfileProps) {
+export function UserCVProfile({ data, isOwnProfile = true, username, onEdit }: UserCVProfileProps) {
   const [copied, setCopied] = useState(false);
+  const [publicUserData, setPublicUserData] = useState<any>(null);
+  const [publicLoading, setPublicLoading] = useState(!!username);
   const [selectedSkill, setSelectedSkill] = useState<SkillItem | null>(null);
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -502,11 +504,52 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
   const [showEditProjectDialog, setShowEditProjectDialog] = useState(false);
   const [showEditCertificationDialog, setShowEditCertificationDialog] = useState(false);
   
+  // Fetch public user data if username is provided
+  useEffect(() => {
+    if (!username) return;
+    
+    const fetchPublicProfile = async () => {
+      try {
+        const response = await fetch(`/api/user/${username}`);
+        if (!response.ok) throw new Error('Failed to fetch profile');
+        const userData = await response.json();
+        setPublicUserData(userData);
+      } catch (error) {
+        console.error('[v0] Error fetching public profile:', error);
+      } finally {
+        setPublicLoading(false);
+      }
+    };
+
+    fetchPublicProfile();
+  }, [username]);
+  
   // Fetch real user data if this is own profile
   const { userData, loading, refetch } = useUser();
   
   // Use real data if available, NEVER fall back to hardcoded data for own profile
   const displayData = (() => {
+    // For public profile pages using username
+    if (username && publicUserData) {
+      const cv = publicUserData.cv;
+      const profile = publicUserData.profile;
+      
+      return {
+        name: `${profile.firstName} ${profile.lastName}`,
+        location: profile.location || "",
+        phone: profile.phone || "",
+        email: profile.email || "",
+        website: profile.personalWebsite || "",
+        github: "",
+        linkedin: profile.linkedinUrl || "",
+        aboutMe: profile.aboutMe || "",
+        skills: cv.skills?.length > 0 ? transformSkills(cv.skills) : [],
+        experience: cv.experiences?.length > 0 ? transformExperiences(cv.experiences) : [],
+        projects: cv.projects?.length > 0 ? transformProjects(cv.projects) : [],
+        education: cv.education?.length > 0 ? transformEducation(cv.education) : [],
+      };
+    }
+    
     if (isOwnProfile && userData) {
       // For own profile, ONLY use database data
       const cv = userData.cv;
