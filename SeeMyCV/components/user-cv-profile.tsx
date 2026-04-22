@@ -1101,7 +1101,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => console.log("Add project")}
+                  onClick={handleAddProject}
                   className="print:hidden h-8 w-8 p-0"
                 >
                   <Plus className="w-4 h-4" />
@@ -1161,7 +1161,7 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => console.log("Add certification")}
+                  onClick={handleAddCertification}
                   className="print:hidden h-8 w-8 p-0"
                 >
                   <Plus className="w-4 h-4" />
