@@ -63,6 +63,8 @@ interface Project {
   description: string;
   technologies: string[];
   url?: string;
+  startDate?: string;
+  endDate?: string;
   bullets: string[];
 }
 
@@ -74,6 +76,8 @@ interface Education {
   startDate: string;
   endDate: string;
   grade?: string;
+  target?: string;
+  gradeDescription?: string;
   expected?: boolean;
   description?: string;
 }
@@ -146,9 +150,11 @@ function transformProjects(dbProjects: any[]): Project[] {
   return dbProjects.map(proj => ({
     id: proj.project_id?.toString() || '',
     name: proj.title || '',
-    description: proj.summary || '',
-    technologies: proj.skills ? proj.skills.split(',').map((s: string) => s.trim()) : [],
-    url: proj.link,
+    description: proj.description || proj.summary || '',
+    technologies: proj.skills ? proj.skills.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
+    url: proj.link || '',
+    startDate: proj.start_date || '',
+    endDate: proj.end_date || '',
     bullets: [],
   }));
 }
@@ -156,14 +162,14 @@ function transformProjects(dbProjects: any[]): Project[] {
 function transformEducation(dbEducation: any[]): Education[] {
   return dbEducation.map(edu => ({
     id: edu.education_id?.toString() || '',
-    degree: edu.institute_name || '',
+    degree: '',                          // education table has no degree name column
     institution: edu.institute_name || '',
     location: edu.location || '',
     startDate: edu.start_date || '',
     endDate: edu.end_date || '',
-    grade: edu.achieved,
-    target: edu.target,
-    gradeDescription: edu.grade_description,
+    grade: edu.achieved || '',
+    target: edu.target || '',
+    gradeDescription: edu.grade_description || '',
   }));
 }
 
@@ -484,17 +490,24 @@ function ExperienceDetailModal({
               {experience.startDate} - {experience.current ? "Present" : experience.endDate}
             </span>
           </div>
-          <div>
-            <h4 className="font-medium mb-3 text-foreground">Key Achievements</h4>
-            <ul className="space-y-3">
-              {experience.bullets.map((bullet, idx) => (
-                <li key={idx} className="flex gap-3 text-sm">
-                  <span className="text-primary mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-foreground leading-relaxed">{renderTextWithBold(bullet)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {experience.description && (
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-foreground leading-relaxed">{experience.description}</p>
+            </div>
+          )}
+          {experience.bullets.length > 0 && (
+            <div>
+              <h4 className="font-medium mb-3 text-foreground">Key Achievements</h4>
+              <ul className="space-y-3">
+                {experience.bullets.map((bullet, idx) => (
+                  <li key={idx} className="flex gap-3 text-sm">
+                    <span className="text-primary mt-0.5 flex-shrink-0">•</span>
+                    <span className="text-foreground leading-relaxed">{renderTextWithBold(bullet)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
@@ -570,24 +583,39 @@ function ProjectDetailModal({
           )}
         </DialogHeader>
         <div className="space-y-6 py-2">
-          <div className="flex flex-wrap gap-2">
-            {project.technologies.map((tech) => (
-              <Badge key={tech} variant="secondary" className="text-xs">
-                {tech}
-              </Badge>
-            ))}
-          </div>
-          <div>
-            <h4 className="font-medium mb-3 text-foreground">Key Features & Achievements</h4>
-            <ul className="space-y-3">
-              {project.bullets.map((bullet, idx) => (
-                <li key={idx} className="flex gap-3 text-sm">
-                  <span className="text-primary mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-foreground leading-relaxed">{renderTextWithBold(bullet)}</span>
-                </li>
+          {(project.startDate || project.endDate) && (
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Calendar className="w-4 h-4" />
+              {project.startDate}{project.startDate && project.endDate ? " - " : ""}{project.endDate}
+            </div>
+          )}
+          {project.technologies.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {project.technologies.map((tech) => (
+                <Badge key={tech} variant="secondary" className="text-xs">
+                  {tech}
+                </Badge>
               ))}
-            </ul>
-          </div>
+            </div>
+          )}
+          {project.description && (
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-foreground leading-relaxed">{project.description}</p>
+            </div>
+          )}
+          {project.bullets.length > 0 && (
+            <div>
+              <h4 className="font-medium mb-3 text-foreground">Key Features & Achievements</h4>
+              <ul className="space-y-3">
+                {project.bullets.map((bullet, idx) => (
+                  <li key={idx} className="flex gap-3 text-sm">
+                    <span className="text-primary mt-0.5 flex-shrink-0">•</span>
+                    <span className="text-foreground leading-relaxed">{renderTextWithBold(bullet)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
@@ -639,23 +667,37 @@ function EducationDetailModal({
             </div>
           )}
         </DialogHeader>
-        <div className="space-y-6 py-2">
+        <div className="space-y-4 py-2">
           <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <MapPin className="w-4 h-4" />
-              {education.location}
-            </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              {education.startDate} - {education.endDate}
-            </span>
+            {education.location && (
+              <span className="flex items-center gap-1">
+                <MapPin className="w-4 h-4" />
+                {education.location}
+              </span>
+            )}
+            {(education.startDate || education.endDate) && (
+              <span className="flex items-center gap-1">
+                <Calendar className="w-4 h-4" />
+                {education.startDate}{education.startDate && education.endDate ? " - " : ""}{education.endDate}
+              </span>
+            )}
           </div>
-          {education.grade && (
-            <div className="p-4 bg-accent/50 rounded-lg">
-              <p className="text-sm font-medium text-foreground">
-                {education.expected ? "Expected Grade: " : "Grade: "}
-                <span className="text-primary">{education.grade}</span>
-              </p>
+          {(education.grade || education.target || education.gradeDescription) && (
+            <div className="p-4 bg-accent/50 rounded-lg space-y-1">
+              {education.target && (
+                <p className="text-sm text-foreground">
+                  <span className="font-medium">Target: </span>{education.target}
+                </p>
+              )}
+              {education.grade && (
+                <p className="text-sm text-foreground">
+                  <span className="font-medium">{education.expected ? "Expected Grade: " : "Achieved: "}</span>
+                  <span className="text-primary">{education.grade}</span>
+                </p>
+              )}
+              {education.gradeDescription && (
+                <p className="text-sm text-muted-foreground">{education.gradeDescription}</p>
+              )}
             </div>
           )}
           {education.description && (
@@ -1212,18 +1254,32 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
                       >
                         {edu.institution}
                       </button>
-                      <span className="text-muted-foreground text-sm">
-                        ({edu.startDate} - {edu.endDate})
-                      </span>
-                      <span className="text-foreground">-</span>
-                      <span className="text-foreground">{edu.degree}</span>
+                      {edu.degree && edu.degree !== edu.institution && (
+                        <>
+                          <span className="text-foreground">-</span>
+                          <span className="text-foreground">{edu.degree}</span>
+                        </>
+                      )}
                     </div>
+                    {(edu.startDate || edu.endDate) && (
+                      <p className="text-muted-foreground text-xs mt-0.5">
+                        {edu.startDate}{edu.startDate && edu.endDate ? " - " : ""}{edu.endDate}
+                      </p>
+                    )}
                     {edu.grade && (
                       <p className="text-foreground text-sm mt-0.5">
                         <span className="font-medium">{edu.expected ? "Expected" : "Grade"}:</span> {edu.grade}
-                    </p>
-                      )}
-                    </div>
+                      </p>
+                    )}
+                    {edu.target && (
+                      <p className="text-foreground text-sm mt-0.5">
+                        <span className="font-medium">Target:</span> {edu.target}
+                      </p>
+                    )}
+                    {edu.gradeDescription && (
+                      <p className="text-muted-foreground text-xs mt-0.5">{edu.gradeDescription}</p>
+                    )}
+                  </div>
                 ))
               )}
             </div>
@@ -1256,20 +1312,27 @@ export function UserCVProfile({ data = defaultData, isOwnProfile = true, onEdit 
                 displayData.experience.map((exp) => (
                   <div key={exp.id}>
                     <div className="flex flex-wrap items-baseline gap-x-1">
-                      <span className="font-bold text-foreground">{exp.company}</span>
-                      <span className="text-foreground">-</span>
+                      {exp.company && (
+                        <>
+                          <span className="font-bold text-foreground">{exp.company}</span>
+                          <span className="text-foreground">-</span>
+                        </>
+                      )}
                       <button
                         onClick={() => setSelectedExperience(exp)}
                         className="font-bold text-primary hover:underline cursor-pointer"
                       >
                         {exp.title}
                       </button>
-                      <span className="text-foreground">,</span>
-                      <span className="text-muted-foreground text-sm">
-                        {exp.startDate} - {exp.current ? "Current" : exp.endDate}
-                      </span>
                     </div>
-                    <p className="text-foreground mt-1 text-sm">{exp.description}</p>
+                    {(exp.startDate || exp.endDate) && (
+                      <p className="text-muted-foreground text-xs mt-0.5">
+                        {exp.startDate}{exp.startDate ? " - " : ""}{exp.current ? "Present" : exp.endDate}
+                      </p>
+                    )}
+                    {exp.description && (
+                      <p className="text-foreground mt-1 text-sm">{exp.description}</p>
+                    )}
                   </div>
                 ))
               )}
