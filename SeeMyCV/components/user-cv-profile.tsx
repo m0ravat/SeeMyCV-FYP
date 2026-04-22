@@ -1442,16 +1442,16 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
                 {displayData.certifications.map((cert) => (
                   <div key={cert.id}>
                     <div className="flex flex-wrap items-baseline gap-x-1">
-                      {cert.issuer && (
-                        <span className="font-semibold text-foreground">{cert.issuer}</span>
-                      )}
-                      {cert.issuer && <span className="text-muted-foreground">-</span>}
                       <button
                         onClick={() => setSelectedCertification(cert)}
                         className="font-bold text-primary hover:underline cursor-pointer"
                       >
                         {cert.name}
                       </button>
+                      {cert.issuer && <span className="text-muted-foreground">-</span>}
+                      {cert.issuer && (
+                        <span className="text-foreground">{cert.issuer}</span>
+                      )}
                     </div>
                   </div>
                 ))}
