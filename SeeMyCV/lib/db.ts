@@ -5,7 +5,8 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL || process.env.DIRECT_URL,
   max: 20, // Maximum number of connections in the pool
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 5000, // Increased from 2000ms to 5000ms
+  statement_timeout: 30000, // 30 second query timeout
 });
 
 pool.on('error', (err) => {

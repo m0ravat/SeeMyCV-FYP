@@ -14,9 +14,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find user by username
+    // Find user by username with email joined from profile
     const result = await query(
-      'SELECT user_id, username, password, "isPremium" FROM "user" WHERE username = $1',
+      `SELECT u.user_id, u.username, u.password, u."isPremium", p.email
+       FROM "user" u
+       LEFT JOIN profile p ON u.user_id = p.user_id
+       WHERE u.username = $1`,
       [username]
     );
 
@@ -39,16 +42,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Get user email from profile table
-    const profileResult = await query(
-      'SELECT email FROM profile WHERE user_id = $1',
-      [user.user_id]
-    );
-
-    const userEmail = profileResult.rows[0]?.email || null;
-
     // Create session with HTTP-only cookie
-    await createSession(user.user_id, user.username, userEmail, user.isPremium);
+    await createSession(user.user_id, user.username, user.email, user.isPremium);
 
     return NextResponse.json(
       {
@@ -56,7 +51,7 @@ export async function POST(req: NextRequest) {
         user: {
           user_id: user.user_id,
           username: user.username,
-          email: userEmail,
+          email: user.email,
           isPremium: user.isPremium,
         },
       },
