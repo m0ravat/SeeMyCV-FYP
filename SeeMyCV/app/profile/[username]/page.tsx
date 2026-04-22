@@ -3,19 +3,23 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { UserCVProfile } from "@/components/user-cv-profile";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Home } from "lucide-react";
+import { useParams } from "next/navigation";
 
 export default function ProfilePage() {
+  const params = useParams();
+  const username = params?.username as string | undefined;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard">
+            <Link href={username ? "/dashboard" : "/dashboard"}>
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
+                {username ? "Back" : "Back to Dashboard"}
               </Button>
             </Link>
           </div>
@@ -31,7 +35,11 @@ export default function ProfilePage() {
 
       {/* Main Content */}
       <main className="py-8 px-4">
-        <UserCVProfile isOwnProfile={true} />
+        {username ? (
+          <UserCVProfile isOwnProfile={false} username={username} />
+        ) : (
+          <UserCVProfile isOwnProfile={true} />
+        )}
       </main>
 
       {/* Footer */}
@@ -43,4 +51,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
