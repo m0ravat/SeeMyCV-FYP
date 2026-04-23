@@ -1,8 +1,11 @@
 import { Pool, PoolClient } from 'pg';
 
+const sslConfig = { rejectUnauthorized: false };
+
 // Pooled connection — for regular reads/writes (uses pgBouncer, no transactions)
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.DIRECT_URL,
+  ssl: sslConfig,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
@@ -12,6 +15,7 @@ const pool = new Pool({
 // Direct (non-pooled) connection — required for transactions (pgBouncer strips BEGIN/COMMIT)
 const directPool = new Pool({
   connectionString: process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL || process.env.DIRECT_URL,
+  ssl: sslConfig,
   max: 5,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
