@@ -1,12 +1,24 @@
 import { Pool, PoolClient } from 'pg';
 
-// Create a connection pool for PostgreSQL
+const connectionString = process.env.DATABASE_URL || process.env.DIRECT_URL;
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL environment variable is not set');
+}
+
+// Parse the connection string manually so pg never falls back to localhost
+const url = new URL(connectionString);
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || process.env.DIRECT_URL,
-  max: 20, // Maximum number of connections in the pool
+  host: url.hostname,
+  port: parseInt(url.port, 10),
+  database: url.pathname.replace('/', ''),
+  user: url.username,
+  password: url.password,
+  ssl: { rejectUnauthorized: false },
+  max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000, // Increased from 2000ms to 5000ms
-  statement_timeout: 30000, // 30 second query timeout
+  connectionTimeoutMillis: 5000,
+  statement_timeout: 30000,
 });
 
 pool.on('error', (err) => {
