@@ -81,7 +81,62 @@ export function ProfilePage() {
   const [privacyStatus, setPrivacyStatus] = useState("open");
   const [profileLinkCopied, setProfileLinkCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const { userData, loading } = useUser();
+  const { userData, loading, refetch } = useUser();
+
+  // Skills state
+  const [newSkillName, setNewSkillName] = useState('');
+  const [newSkillDescription, setNewSkillDescription] = useState('');
+  const [newSkillIsSoft, setNewSkillIsSoft] = useState(false);
+  const [skillSaving, setSkillSaving] = useState(false);
+  const [skillError, setSkillError] = useState<string | null>(null);
+  const [deletingSkillId, setDeletingSkillId] = useState<string | null>(null);
+
+  const handleAddSkill = async () => {
+    if (!newSkillName.trim()) return;
+    setSkillSaving(true);
+    setSkillError(null);
+    try {
+      const res = await fetch('/api/cv/add-skill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newSkillName.trim(),
+          description: newSkillDescription.trim() || null,
+          isSoftSkill: newSkillIsSoft,
+          level: null,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setSkillError(data.error ?? 'Failed to add skill');
+        return;
+      }
+      setNewSkillName('');
+      setNewSkillDescription('');
+      setNewSkillIsSoft(false);
+      refetch();
+    } catch {
+      setSkillError('Network error. Please try again.');
+    } finally {
+      setSkillSaving(false);
+    }
+  };
+
+  const handleDeleteSkill = async (skillId: string) => {
+    setDeletingSkillId(skillId);
+    try {
+      await fetch('/api/cv/delete-skill', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ skillId }),
+      });
+      refetch();
+    } catch {
+      // silently ignore
+    } finally {
+      setDeletingSkillId(null);
+    }
+  };
 
   // Use real user data from hook
   const profile = {
@@ -90,7 +145,7 @@ export function ProfilePage() {
     email: userData?.profile.email || "",
     website: userData?.profile.personalWebsite || "",
     bio: userData?.profile.aboutMe || "No bio yet",
-    skills: userData?.cv.skills?.map(s => s.name) || [],
+    skills: userData?.cv.skills || [],
   };
 
   const experiences = userData?.cv.experiences?.map((exp: any) => ({
@@ -325,9 +380,9 @@ export function ProfilePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {profile.skills.slice(0, 6).map((skill) => (
-                      <Badge key={skill} variant="secondary">
-                        {skill}
+                    {profile.skills.slice(0, 6).map((skill: any) => (
+                      <Badge key={skill.skill_id ?? skill.name} variant="secondary">
+                        {skill.name}
                       </Badge>
                     ))}
                     {profile.skills.length > 6 && (
@@ -513,42 +568,84 @@ export function ProfilePage() {
             <TabsContent value="skills" className="space-y-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-foreground">Skills & Expertise</h2>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Skill
-                </Button>
               </div>
 
+              {/* Current skills */}
               <Card>
-                <CardContent className="pt-6">
-                  <div className="flex flex-wrap gap-2">
-                    {profile.skills.map((skill) => (
-                      <Badge
-                        key={skill}
-                        variant="secondary"
-                        className="px-3 py-1.5 text-sm flex items-center gap-2"
-                      >
-                        {skill}
-                        <button className="hover:text-destructive">
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
+                <CardHeader>
+                  <CardTitle className="text-base">Your Skills</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {profile.skills.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No skills added yet.</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {profile.skills.map((skill: any) => (
+                        <Badge
+                          key={skill.skill_id ?? skill.name}
+                          variant="secondary"
+                          className="px-3 py-1.5 text-sm flex items-center gap-2"
+                        >
+                          {skill.is_soft_skill && (
+                            <span className="text-xs text-muted-foreground mr-1">[soft]</span>
+                          )}
+                          {skill.name}
+                          <button
+                            className="hover:text-destructive transition-colors"
+                            disabled={deletingSkillId === skill.skill_id}
+                            onClick={() => handleDeleteSkill(skill.skill_id)}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
+              {/* Add new skill */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Add New Skills</CardTitle>
+                  <CardTitle className="text-base">Add New Skill</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <Input placeholder="Type a skill and press Enter..." />
-                    <p className="text-sm text-muted-foreground">
-                      Suggested: Machine Learning, Kubernetes, CI/CD, REST APIs
-                    </p>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <Label>Skill Name</Label>
+                      <Input
+                        placeholder="e.g. React, Teamwork, SQL..."
+                        value={newSkillName}
+                        onChange={(e) => setNewSkillName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddSkill()}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Description (optional)</Label>
+                      <Input
+                        placeholder="Brief description..."
+                        value={newSkillDescription}
+                        onChange={(e) => setNewSkillDescription(e.target.value)}
+                      />
+                    </div>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="isSoftSkill"
+                      checked={newSkillIsSoft}
+                      onChange={(e) => setNewSkillIsSoft(e.target.checked)}
+                      className="w-4 h-4"
+                    />
+                    <Label htmlFor="isSoftSkill" className="cursor-pointer">Soft skill</Label>
+                  </div>
+                  {skillError && (
+                    <p className="text-sm text-destructive">{skillError}</p>
+                  )}
+                  <Button onClick={handleAddSkill} disabled={skillSaving || !newSkillName.trim()}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    {skillSaving ? 'Adding...' : 'Add Skill'}
+                  </Button>
                 </CardContent>
               </Card>
             </TabsContent>
