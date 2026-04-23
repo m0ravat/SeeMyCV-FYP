@@ -42,7 +42,7 @@ interface PremiumPageProps {
 
 export function PremiumPage({ onSubscribe }: PremiumPageProps) {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const oneTimePrice = 0.02; // £0.02 for testing
+  const oneTimePrice = 0.30; // £0.30 for testing (Stripe minimum) — change to 20 for production
 
   const fetchClientSecret = useCallback(async () => {
     const res = await fetch("/api/stripe/checkout", {

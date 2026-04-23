@@ -11,7 +11,7 @@ export const PRODUCTS: Product[] = [
     id: 'premium-lifetime',
     name: 'SeeMyCV Premium',
     description: 'Lifetime access to all premium features including AI feedback and unlimited CVs.',
-    priceInCents: 2, // £0.02 for testing — change to 2000 (£20) for production
+    priceInCents: 30, // £0.30 for testing (Stripe minimum) — change to 2000 (£20) for production
     currency: 'gbp',
   },
 ];
