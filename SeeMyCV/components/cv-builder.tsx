@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -114,52 +114,24 @@ interface CVFormData {
   education: EducationEntry[];
 }
 
-const cvTemplates = [
-  {
-    id: "entry-level",
-    name: "Entry Level / Generic",
-    description: "Perfect for graduates and those new to the workforce",
-    icon: FileCheck,
-    features: ["Clean layout", "Skills emphasis", "Education focused"],
-  },
-  {
-    id: "customer-service",
-    name: "Customer Service",
-    description: "Skills-based CV highlighting soft skills and achievements",
-    icon: Headphones,
-    features: ["Skills-based format", "Achievement metrics", "Communication focus"],
-  },
-  {
-    id: "tech",
-    name: "Tech / IT",
-    description: "Technical CV with project showcase and tech stack",
-    icon: Code,
-    features: ["Technical skills section", "Project showcase", "GitHub integration"],
-  },
-  {
-    id: "teaching",
-    name: "Teaching / Education",
-    description: "Educator-focused CV with certifications and methodologies",
-    icon: GraduationCap,
-    features: ["Qualifications display", "Teaching philosophy", "Student outcomes"],
-  },
-  {
-    id: "entry-level-software-engineer",
-    name: "Entry Level Software Engineer",
-    description: "Premium format designed for new software engineers entering the field",
-    icon: Code,
-    features: ["Technical projects focus", "Programming skills showcase", "GitHub portfolio"],
-    isPremium: true,
-  },
-  {
-    id: "software-engineer-apprenticeship",
-    name: "Software Engineer Apprenticeship",
-    description: "Premium format tailored for apprenticeship programs and early-career roles",
-    icon: GraduationCap,
-    features: ["Learning highlights", "Apprenticeship structure", "Mentorship display"],
-    isPremium: true,
-  },
-];
+interface CvFormat {
+  id: string;
+  title: string;
+  desc: string;
+  job_desc: string;
+  sections: string[];
+  ai_prompt: string;
+  isPremium: boolean;
+}
+
+// Derive an icon from the template title/sections
+function getTemplateIcon(format: CvFormat) {
+  const t = format.title.toLowerCase();
+  if (t.includes("tech") || t.includes("software") || t.includes("it")) return Code;
+  if (t.includes("teach") || t.includes("education") || t.includes("apprentice")) return GraduationCap;
+  if (t.includes("customer") || t.includes("service")) return Headphones;
+  return FileCheck;
+}
 
 const formSections = [
   { id: "contact", label: "Contact", icon: User },
@@ -212,6 +184,8 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
     },
   ]);
 
+  const [cvFormats, setCvFormats] = useState<CvFormat[]>([]);
+  const [formatsLoading, setFormatsLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [showCVForm, setShowCVForm] = useState(false);
   const [showAIFeedback, setShowAIFeedback] = useState(false);
@@ -220,6 +194,14 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [activeSection, setActiveSection] = useState("contact");
   const [formData, setFormData] = useState<CVFormData>(initialFormData);
+
+  useEffect(() => {
+    fetch("/api/cvformats")
+      .then((r) => r.json())
+      .then((data) => setCvFormats(data.templates ?? []))
+      .catch(() => setCvFormats([]))
+      .finally(() => setFormatsLoading(false));
+  }, []);
 
   const handleUseTemplate = (templateId: string) => {
     setSelectedTemplate(templateId);
@@ -432,8 +414,8 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
   const handleSaveCV = () => {
     const newCV: SavedCV = {
       id: Date.now().toString(),
-      name: `${formData.firstName} ${formData.surname} - ${selectedTemplate}`,
-      template: selectedTemplate || "entry-level",
+      name: `${formData.firstName} ${formData.surname} - ${cvFormats.find((f) => String(f.id) === selectedTemplate)?.title ?? selectedTemplate}`,
+      template: selectedTemplate || "",
       lastModified: "Just now",
       status: "draft",
       openForFeedback: false,
@@ -454,9 +436,9 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
     }, 3000);
   };
 
-  const getTemplateIcon = (templateId: string) => {
-    const template = cvTemplates.find((t) => t.id === templateId);
-    return template?.icon || FileText;
+  const getTemplateIconById = (templateId: string) => {
+    const format = cvFormats.find((t) => String(t.id) === templateId);
+    return format ? getTemplateIcon(format) : FileText;
   };
 
   const renderFormSection = () => {
@@ -1027,7 +1009,29 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
 
       {/* Template Grid - Main View */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {cvTemplates.map((template) => (
+        {formatsLoading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-muted" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-4 bg-muted rounded w-3/4" />
+                    <div className="h-3 bg-muted rounded w-full" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-2 space-y-2">
+                <div className="h-3 bg-muted rounded w-2/3" />
+                <div className="h-3 bg-muted rounded w-1/2" />
+                <div className="h-8 bg-muted rounded mt-4" />
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+        cvFormats.map((template) => {
+          const Icon = getTemplateIcon(template);
+          return (
           <Card
             key={template.id}
             className={`transition-all ${
@@ -1045,7 +1049,7 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
                       : "bg-primary/10"
                   }`}
                 >
-                  <template.icon
+                  <Icon
                     className={`w-5 h-5 ${
                       template.isPremium
                         ? "text-orange-600"
@@ -1055,21 +1059,21 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <CardTitle className="text-base">{template.name}</CardTitle>
+                    <CardTitle className="text-base">{template.title}</CardTitle>
                     {template.isPremium && (
                       <Badge className="bg-orange-600 hover:bg-orange-700 text-white text-xs">
                         Premium
                       </Badge>
                     )}
                   </div>
-                  <CardDescription className="text-xs">{template.description}</CardDescription>
+                  <CardDescription className="text-xs">{template.desc}</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="pt-2">
               <ul className="space-y-1 mb-4">
-                {template.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
+                {(template.sections ?? []).map((section) => (
+                  <li key={section} className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Check
                       className={`w-4 h-4 ${
                         template.isPremium
@@ -1077,7 +1081,7 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
                           : "text-accent"
                       }`}
                     />
-                    {feature}
+                    {section}
                   </li>
                 ))}
               </ul>
@@ -1098,7 +1102,7 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
                         ? "bg-orange-600 hover:bg-orange-700 text-white"
                         : "bg-primary text-primary-foreground hover:bg-primary/90"
                     }`}
-                    onClick={() => handleUseTemplate(template.id)}
+                    onClick={() => handleUseTemplate(String(template.id))}
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Create
@@ -1120,7 +1124,9 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })
+        )}
       </div>
 
       {/* CV Form Dialog - Wider without preview */}
