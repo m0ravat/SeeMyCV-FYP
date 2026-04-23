@@ -1,10 +1,8 @@
 import { verifySession } from '@/lib/auth';
 import { query } from '@/lib/db';
-import { createGroq } from '@ai-sdk/groq';
-import { generateText } from 'ai';
 import { NextResponse } from 'next/server';
 
-const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 export async function POST(request: Request) {
   try {
@@ -153,13 +151,29 @@ Based on the candidate profile and job description above, provide structured fee
   "industryTips": ["<tip 1>", "<tip 2>"]
 }`;
 
-    // 6. Call Groq
-    const { text: rawText } = await generateText({
-      model: groq('llama-3.3-70b-versatile'),
-      prompt: fullPrompt,
-      temperature: 0.4,
-      maxTokens: 1024,
+    // 6. Call Groq REST API directly
+    const groqRes = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: fullPrompt }],
+        temperature: 0.4,
+        max_tokens: 1024,
+      }),
     });
+
+    if (!groqRes.ok) {
+      const errBody = await groqRes.json().catch(() => ({}));
+      console.error('[ai/feedback] Groq API error:', JSON.stringify(errBody));
+      return NextResponse.json({ error: 'AI service error. Please try again.' }, { status: 500 });
+    }
+
+    const groqData = await groqRes.json();
+    const rawText: string = groqData.choices?.[0]?.message?.content ?? '';
 
     // Strip any markdown code fences the model may add
     const jsonText = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
