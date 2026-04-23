@@ -115,19 +115,21 @@ export function PremiumPage({ onSubscribe }: PremiumPageProps) {
     <div className="max-w-6xl mx-auto px-4 py-12">
       {/* Stripe Embedded Checkout Dialog */}
       <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
+        <DialogContent className="max-w-xl h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b border-border">
             <DialogTitle className="flex items-center gap-2">
               <Crown className="w-4 h-4 text-premium" />
               Upgrade to Premium
             </DialogTitle>
           </DialogHeader>
-          <EmbeddedCheckoutProvider
-            stripe={stripePromise}
-            options={{ fetchClientSecret }}
-          >
-            <EmbeddedCheckout />
-          </EmbeddedCheckoutProvider>
+          <div className="overflow-y-auto flex-1 p-6">
+            <EmbeddedCheckoutProvider
+              stripe={stripePromise}
+              options={{ fetchClientSecret }}
+            >
+              <EmbeddedCheckout />
+            </EmbeddedCheckoutProvider>
+          </div>
         </DialogContent>
       </Dialog>
       {/* Hero Section */}
