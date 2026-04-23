@@ -39,7 +39,7 @@ export default function DashboardPage() {
       case "my-cvs":
         return <CVBuilder isPremium={isPremium} onUpgrade={handleUpgrade} />;
       case "premium":
-        return <PremiumPage onSubscribe={handleSubscribe} />;
+        return <PremiumPage onSubscribe={handleSubscribe} isPremium={isPremium} />;
       case "settings":
         return <SettingsPage isPremium={isPremium} onUpgrade={handleUpgrade} />;
       default:

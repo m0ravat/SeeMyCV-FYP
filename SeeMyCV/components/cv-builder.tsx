@@ -37,6 +37,7 @@ import {
   Briefcase,
   FolderOpen,
   BookOpen,
+  Lock,
 } from "lucide-react";
 import { UserCVProfile } from "./user-cv-profile";
 
@@ -1081,23 +1082,39 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
                 ))}
               </ul>
               <div className="flex gap-2">
-                <Button
-                  className={`flex-1 ${
-                    template.isPremium
-                      ? "bg-orange-600 hover:bg-orange-700 text-white"
-                      : "bg-primary text-primary-foreground hover:bg-primary/90"
-                  }`}
-                  onClick={() => handleUseTemplate(template.id)}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create
-                </Button>
+                {template.isPremium && !isPremium ? (
+                  <Button
+                    className="flex-1 bg-orange-100 text-orange-600 hover:bg-orange-100 cursor-not-allowed opacity-70"
+                    disabled
+                    title="Upgrade to Premium to unlock this template"
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    Premium Only
+                  </Button>
+                ) : (
+                  <Button
+                    className={`flex-1 ${
+                      template.isPremium
+                        ? "bg-orange-600 hover:bg-orange-700 text-white"
+                        : "bg-primary text-primary-foreground hover:bg-primary/90"
+                    }`}
+                    onClick={() => handleUseTemplate(template.id)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create
+                  </Button>
+                )}
                 <Button
                   variant="outline"
-                  className="flex-1"
-                  onClick={() => setShowAIFeedback(true)}
+                  className={`flex-1 ${template.isPremium && !isPremium ? "cursor-not-allowed opacity-50" : ""}`}
+                  disabled={template.isPremium && !isPremium}
+                  onClick={() => !template.isPremium || isPremium ? setShowAIFeedback(true) : onUpgrade?.()}
                 >
-                  <Sparkles className="w-4 h-4 mr-2" />
+                  {template.isPremium && !isPremium ? (
+                    <Lock className="w-4 h-4 mr-2" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 mr-2" />
+                  )}
                   AI Feedback
                 </Button>
               </div>

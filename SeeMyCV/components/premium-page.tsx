@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 import {
   Crown,
   Check,
@@ -38,10 +39,12 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 interface PremiumPageProps {
   onSubscribe?: () => void;
+  isPremium?: boolean;
 }
 
-export function PremiumPage({ onSubscribe }: PremiumPageProps) {
+export function PremiumPage({ onSubscribe, isPremium = false }: PremiumPageProps) {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const router = useRouter();
   const oneTimePrice = 0.30; // £0.30 for testing (Stripe minimum) — change to 20 for production
 
   const fetchClientSecret = useCallback(async () => {
@@ -113,6 +116,27 @@ export function PremiumPage({ onSubscribe }: PremiumPageProps) {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
+      {/* Already subscribed banner */}
+      {isPremium && (
+        <div className="mb-8 flex items-center justify-between gap-4 rounded-xl bg-orange-500 px-6 py-4 text-white shadow-md">
+          <div className="flex items-center gap-3">
+            <Crown className="w-6 h-6 flex-shrink-0" />
+            <div>
+              <p className="font-bold text-lg">Congrats, you&apos;re already subscribed!</p>
+              <p className="text-orange-100 text-sm">You have full access to all Premium features.</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            className="border-white text-white hover:bg-white hover:text-orange-600 flex-shrink-0"
+            onClick={() => router.push("/dashboard")}
+          >
+            Go to Dashboard
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      )}
+
       {/* Stripe Embedded Checkout Dialog */}
       <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
         <DialogContent className="max-w-xl h-[90vh] flex flex-col p-0 gap-0">
@@ -246,14 +270,24 @@ export function PremiumPage({ onSubscribe }: PremiumPageProps) {
             </ul>
           </CardContent>
           <CardFooter>
-            <Button
-              className="w-full bg-premium text-premium-foreground hover:bg-premium/90"
-              onClick={() => setCheckoutOpen(true)}
-            >
-              <Crown className="w-4 h-4 mr-2" />
-              Upgrade to Premium
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            {isPremium ? (
+              <Button
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                onClick={() => router.push("/dashboard")}
+              >
+                <Crown className="w-4 h-4 mr-2" />
+                Already Subscribed — Go to Dashboard
+              </Button>
+            ) : (
+              <Button
+                className="w-full bg-premium text-premium-foreground hover:bg-premium/90"
+                onClick={() => setCheckoutOpen(true)}
+              >
+                <Crown className="w-4 h-4 mr-2" />
+                Upgrade to Premium
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            )}
           </CardFooter>
         </Card>
       </div>

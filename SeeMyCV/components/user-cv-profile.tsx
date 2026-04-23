@@ -31,6 +31,7 @@ import {
   Plus,
   Trash2,
   FolderOpen,
+  Lock,
 } from "lucide-react";
 
 interface SkillItem {
@@ -1177,10 +1178,23 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
             <Share2 className="w-4 h-4 mr-2" />
             {copied ? "Copied!" : "Share"}
           </Button>
-          <Button variant="outline" size="sm" className="bg-transparent">
-            <Download className="w-4 h-4 mr-2" />
-            Download PDF
-          </Button>
+          {userData?.user?.isPremium ? (
+            <Button variant="outline" size="sm" className="bg-transparent">
+              <Download className="w-4 h-4 mr-2" />
+              Download PDF
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-transparent opacity-60 cursor-not-allowed"
+              disabled
+              title="Upgrade to Premium to download your CV as PDF"
+            >
+              <Lock className="w-4 h-4 mr-2" />
+              Download PDF
+            </Button>
+          )}
           {onEdit && (
             <Button size="sm" onClick={onEdit}>
               <Pencil className="w-4 h-4 mr-2" />
