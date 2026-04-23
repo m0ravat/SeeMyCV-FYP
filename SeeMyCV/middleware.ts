@@ -5,6 +5,9 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'dev-secret-key-change-in-production'
 );
 
+// Admin routes protected by a separate HTTP-only cookie
+const ADMIN_PROTECTED_ROUTES = ['/secret/admin/dashboard'];
+
 // Routes that require authentication
 const PROTECTED_ROUTES = ['/dashboard', '/profile', '/settings'];
 
@@ -23,6 +26,14 @@ export async function middleware(request: NextRequest) {
       isAuthenticated = true;
     } catch (error) {
       isAuthenticated = false;
+    }
+  }
+
+  // Guard admin dashboard with its own cookie — redirect to admin login if missing
+  if (ADMIN_PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
+    const adminSession = request.cookies.get('admin-session')?.value;
+    if (adminSession !== 'authenticated') {
+      return NextResponse.redirect(new URL('/secret/admin', request.url));
     }
   }
 

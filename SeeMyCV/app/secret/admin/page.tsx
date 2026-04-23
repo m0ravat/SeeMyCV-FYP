@@ -115,7 +115,6 @@ export default function AdminLoginPage() {
 
       if (res.ok) {
         localStorage.removeItem(STORAGE_KEY);
-        localStorage.setItem("adminLoggedIn", "true");
         router.push("/secret/admin/dashboard");
       } else {
         const data = await res.json();

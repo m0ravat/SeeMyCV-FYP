@@ -80,8 +80,7 @@ function formatDate(d: string) {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
+  // Middleware guarantees the user is authenticated before this page renders
 
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,17 +102,6 @@ export default function AdminDashboard() {
   // Delete confirmation
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Auth check
-  useEffect(() => {
-    const isLoggedIn = localStorage.getItem("adminLoggedIn") === "true";
-    if (!isLoggedIn) {
-      router.push("/secret/admin");
-    } else {
-      setIsAuthenticated(true);
-    }
-    setAuthLoading(false);
-  }, [router]);
-
   // Fetch posts
   const fetchPosts = async () => {
     setLoading(true);
@@ -129,8 +117,8 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    if (isAuthenticated) fetchPosts();
-  }, [isAuthenticated]);
+    fetchPosts();
+  }, []);
 
   const publishedPosts = posts.filter((p) => !p.isDraft);
   const draftPosts = posts.filter((p) => p.isDraft);
@@ -230,12 +218,12 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminLoggedIn");
+  const handleLogout = async () => {
+    await fetch("/api/admin/login", { method: "DELETE" });
     router.push("/secret/admin");
   };
 
-  if (authLoading || !isAuthenticated) return null;
+
 
   return (
     <div className="min-h-screen bg-background">

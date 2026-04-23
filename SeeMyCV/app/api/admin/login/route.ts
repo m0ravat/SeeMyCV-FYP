@@ -18,9 +18,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    return NextResponse.json({ success: true }, { status: 200 });
+    const response = NextResponse.json({ success: true }, { status: 200 });
+
+    // Set an HTTP-only cookie so the server can verify auth on every request
+    response.cookies.set("admin-session", "authenticated", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 8, // 8 hours
+    });
+
+    return response;
   } catch (error) {
-    console.error("[v0] Admin login error:", error);
+    console.error("[admin login] error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+}
+
+// Logout — clears the session cookie
+export async function DELETE() {
+  const response = NextResponse.json({ success: true });
+  response.cookies.set("admin-session", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+  return response;
 }
