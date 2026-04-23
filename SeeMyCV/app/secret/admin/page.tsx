@@ -202,6 +202,12 @@ export default function AdminLoginPage() {
               {isLoading ? "Logging in..." : isRateLimited ? "Rate Limited" : "Access Dashboard"}
             </Button>
           </form>
+
+          <div className="mt-4 rounded-md bg-muted p-3 text-xs text-muted-foreground space-y-1">
+            <p className="font-semibold text-foreground">Demo credentials</p>
+            <p>Username: <code className="bg-background px-1.5 py-0.5 rounded">SuperUser27549362</code></p>
+            <p>Password: <code className="bg-background px-1.5 py-0.5 rounded">admin123</code></p>
+          </div>
         </CardContent>
       </Card>
     </div>
