@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +18,6 @@ import {
 import {
   FileText,
   Plus,
-  Download,
   Trash2,
   Sparkles,
   Check,
@@ -1218,163 +1216,149 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
       </Dialog>
 
       {/* AI Feedback Dialog */}
-      <Dialog open={showAIFeedback} onOpenChange={setShowAIFeedback}>
-        <DialogContent className="max-w-2xl max-h-[90vh]">
-          <DialogHeader>
+      <Dialog
+        open={showAIFeedback}
+        onOpenChange={(open) => {
+          setShowAIFeedback(open);
+          if (!open) { setAnalysisComplete(false); setIsAnalyzing(false); setAiFeedbackResult(null); setAiFeedbackError(null); setJobDescription(""); }
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-border flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Bot className="w-5 h-5 text-primary" />
               AI-Powered CV Analysis
             </DialogTitle>
             <DialogDescription>
-              Get personalized recommendations to improve your CV
+              Get personalised feedback matched against a specific job description
             </DialogDescription>
           </DialogHeader>
 
-          {!analysisComplete ? (
-            <div className="py-12">
-              {!isAnalyzing ? (
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Bot className="w-10 h-10 text-primary" />
+          <div className="flex-1 overflow-y-auto">
+            {!analysisComplete && !isAnalyzing && (
+              <div className="px-6 py-8 space-y-8">
+                <div className="flex items-start gap-4">
+                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-primary font-bold text-sm">1</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">Ready to Analyze</h3>
-                  <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-                    Our AI will review your CV and provide detailed feedback on content, formatting,
-                    and industry-specific recommendations.
-                  </p>
-                  <Button onClick={startAIAnalysis}>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Start Analysis
-                  </Button>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                    <Loader2 className="w-10 h-10 text-primary animate-spin" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">Analyzing Your CV...</h3>
-                  <p className="text-muted-foreground">This may take a few seconds</p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <ScrollArea className="max-h-[60vh]">
-              <div className="space-y-6 py-4">
-                {/* Overall Score */}
-                <div className="text-center p-4 bg-primary/10 rounded-lg">
-                  <div className="text-4xl font-bold text-primary mb-1">78/100</div>
-                  <p className="text-sm text-muted-foreground">Overall CV Score</p>
-                </div>
-
-                {/* Strengths */}
-                <div>
-                  <h4 className="font-semibold text-foreground flex items-center gap-2 mb-3">
-                    <CheckCircle2 className="w-5 h-5 text-accent" />
-                    Strengths
-                  </h4>
-                  <ul className="space-y-2">
-                    <li className="flex gap-2 text-sm">
-                      <span className="text-accent">+</span>
-                      <span className="text-foreground">
-                        Strong technical skills section with relevant technologies
-                      </span>
-                    </li>
-                    <li className="flex gap-2 text-sm">
-                      <span className="text-accent">+</span>
-                      <span className="text-foreground">
-                        Good use of quantifiable achievements (e.g., "reduced by 50%")
-                      </span>
-                    </li>
-                    <li className="flex gap-2 text-sm">
-                      <span className="text-accent">+</span>
-                      <span className="text-foreground">
-                        Clear education section with expected grade
-                      </span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Areas for Improvement */}
-                <div>
-                  <h4 className="font-semibold text-foreground flex items-center gap-2 mb-3">
-                    <Lightbulb className="w-5 h-5 text-premium" />
-                    Areas for Improvement
-                  </h4>
-                  <ul className="space-y-2">
-                    <li className="flex gap-2 text-sm">
-                      <span className="text-premium">!</span>
-                      <span className="text-foreground">
-                        Consider adding a professional summary at the top
-                      </span>
-                    </li>
-                    <li className="flex gap-2 text-sm">
-                      <span className="text-premium">!</span>
-                      <span className="text-foreground">
-                        Add more specific metrics to your project descriptions
-                      </span>
-                    </li>
-                    <li className="flex gap-2 text-sm">
-                      <span className="text-premium">!</span>
-                      <span className="text-foreground">
-                        Include relevant certifications or courses
-                      </span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* ATS Score */}
-                <div>
-                  <h4 className="font-semibold text-foreground flex items-center gap-2 mb-3">
-                    <Target className="w-5 h-5 text-primary" />
-                    ATS Compatibility
-                  </h4>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-accent w-[85%]" />
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <h3 className="font-semibold text-foreground">Paste the Job Description</h3>
+                      <p className="text-sm text-muted-foreground mt-0.5">The AI will compare your profile data against this role and give targeted feedback.</p>
                     </div>
-                    <span className="text-sm font-medium text-foreground">85%</span>
+                    <Textarea placeholder="Paste the full job description here..." value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} rows={10} className="resize-none" />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Your CV is well-optimized for Applicant Tracking Systems
-                  </p>
                 </div>
-
-                {/* Industry Tips */}
+                <div className="flex items-start gap-4">
+                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-primary font-bold text-sm">2</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground">Profile sections being reviewed</h3>
+                    <p className="text-sm text-muted-foreground mt-0.5 mb-3">Based on your selected CV format, the AI pulls these sections from your saved profile:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {aiFeedbackTemplateSections.length > 0 ? aiFeedbackTemplateSections.map((s) => <Badge key={s} variant="secondary">{s}</Badge>) : <span className="text-sm text-muted-foreground">All available sections</span>}
+                    </div>
+                  </div>
+                </div>
+                {aiFeedbackError && <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">{aiFeedbackError}</div>}
+              </div>
+            )}
+            {isAnalyzing && (
+              <div className="px-6 py-16 text-center">
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-5 animate-pulse">
+                  <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">Analysing Your CV...</h3>
+                <p className="text-muted-foreground text-sm">Gemini is comparing your profile against the job description. This takes a few seconds.</p>
+              </div>
+            )}
+            {analysisComplete && aiFeedbackResult && (
+              <div className="px-6 py-6 space-y-6">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="text-center p-4 bg-primary/10 rounded-lg">
+                    <div className="text-4xl font-bold text-primary mb-1">{aiFeedbackResult.overallScore}<span className="text-lg font-normal">/100</span></div>
+                    <p className="text-xs text-muted-foreground">Overall Match Score</p>
+                  </div>
+                  <div className="text-center p-4 bg-accent/10 rounded-lg">
+                    <div className="text-4xl font-bold text-accent mb-1">{aiFeedbackResult.atsScore}<span className="text-lg font-normal">%</span></div>
+                    <p className="text-xs text-muted-foreground">ATS Compatibility</p>
+                  </div>
+                </div>
+                <div className="p-4 bg-muted rounded-lg text-sm text-foreground leading-relaxed">{aiFeedbackResult.matchSummary}</div>
                 <div>
                   <h4 className="font-semibold text-foreground flex items-center gap-2 mb-3">
-                    <TrendingUp className="w-5 h-5 text-primary" />
-                    Industry-Specific Tips
+                    <CheckCircle2 className="w-4 h-4 text-accent" />Strengths
                   </h4>
-                  <div className="p-3 bg-muted rounded-lg text-sm text-foreground">
-                    For software engineering roles, consider highlighting:
-                    <ul className="list-disc ml-4 mt-2 space-y-1">
-                      <li>Open source contributions</li>
-                      <li>System design experience</li>
-                      <li>CI/CD and DevOps exposure</li>
-                    </ul>
+                  <ul className="space-y-2">
+                    {aiFeedbackResult.strengths.map((s, i) => (
+                      <li key={i} className="flex gap-2 text-sm">
+                        <span className="text-accent font-bold shrink-0">+</span>
+                        <span className="text-foreground">{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <Lightbulb className="w-4 h-4 text-premium" />Areas for Improvement
+                  </h4>
+                  <ul className="space-y-2">
+                    {aiFeedbackResult.improvements.map((s, i) => (
+                      <li key={i} className="flex gap-2 text-sm">
+                        <span className="text-premium font-bold shrink-0">!</span>
+                        <span className="text-foreground">{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                {aiFeedbackResult.missingKeywords?.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-foreground flex items-center gap-2 mb-3">
+                      <Target className="w-4 h-4 text-primary" />Missing Keywords
+                    </h4>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {aiFeedbackResult.missingKeywords.map((kw, i) => (
+                        <Badge key={i} variant="outline" className="text-xs border-destructive/40 text-destructive">{kw}</Badge>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{aiFeedbackResult.atsTip}</p>
                   </div>
+                )}
+                <div>
+                  <h4 className="font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <TrendingUp className="w-4 h-4 text-primary" />Industry Tips
+                  </h4>
+                  <ul className="space-y-2">
+                    {aiFeedbackResult.industryTips.map((t, i) => (
+                      <li key={i} className="flex gap-2 text-sm text-foreground">
+                        <span className="text-primary font-bold shrink-0">&bull;</span>{t}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
-            </ScrollArea>
-          )}
-
-          <DialogFooter>
-            {analysisComplete && (
-              <Button variant="outline" className="bg-transparent">
-                <Download className="w-4 h-4 mr-2" />
-                Download Full Report
-              </Button>
             )}
-            <Button
-              onClick={() => {
-                setShowAIFeedback(false);
-                setAnalysisComplete(false);
-                setIsAnalyzing(false);
-              }}
-            >
-              Close
-            </Button>
-          </DialogFooter>
+          </div>
+
+          <div className="px-6 py-4 border-t border-border flex-shrink-0 flex items-center justify-between gap-3">
+            <div>
+              {analysisComplete && (
+                <Button variant="outline" onClick={() => { setAnalysisComplete(false); setAiFeedbackResult(null); setAiFeedbackError(null); setJobDescription(""); }}>
+                  Try Another Job
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowAIFeedback(false)}>Close</Button>
+              {!analysisComplete && (
+                <Button onClick={startAIAnalysis} disabled={isAnalyzing || !jobDescription.trim()}>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  {isAnalyzing ? "Analysing..." : "Analyse CV"}
+                </Button>
+              )}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
