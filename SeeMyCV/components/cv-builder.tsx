@@ -37,6 +37,7 @@ import {
   FolderOpen,
   BookOpen,
   Lock,
+  TrendingUp,
 } from "lucide-react";
 import { UserCVProfile } from "./user-cv-profile";
 
