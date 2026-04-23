@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BookOpen,
   Plus,
@@ -45,6 +46,7 @@ import {
   TrendingUp,
   Loader2,
   Calendar,
+  Send,
 } from "lucide-react";
 
 interface BlogPost {
@@ -54,6 +56,7 @@ interface BlogPost {
   full_blog: string;
   category: string;
   created_at: string;
+  isDraft: boolean;
 }
 
 const CATEGORIES = [
@@ -64,7 +67,7 @@ const CATEGORIES = [
   "Career Advice",
 ];
 
-const emptyForm = { title: "", summary: "", full_blog: "", category: "" };
+const emptyForm = { title: "", summary: "", full_blog: "", category: "", isDraft: true };
 
 function formatDate(d: string) {
   if (!d) return "—";
@@ -84,6 +87,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"all" | "published" | "drafts">("all");
 
   // Create modal
   const [isCreating, setIsCreating] = useState(false);
@@ -114,7 +118,7 @@ export default function AdminDashboard() {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/blog");
+      const res = await fetch("/api/blog?all=true");
       const data = await res.json();
       setPosts(data.posts ?? []);
     } catch {
@@ -128,21 +132,29 @@ export default function AdminDashboard() {
     if (isAuthenticated) fetchPosts();
   }, [isAuthenticated]);
 
-  const filteredPosts = posts.filter(
-    (post) =>
+  const publishedPosts = posts.filter((p) => !p.isDraft);
+  const draftPosts = posts.filter((p) => p.isDraft);
+
+  const filteredPosts = posts.filter((post) => {
+    const matchesSearch =
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.summary.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      post.summary.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTab =
+      activeTab === "all" ||
+      (activeTab === "published" && !post.isDraft) ||
+      (activeTab === "drafts" && post.isDraft);
+    return matchesSearch && matchesTab;
+  });
 
   // Create
-  const handleCreate = async () => {
+  const handleCreate = async (asDraft: boolean) => {
     if (!createForm.title || !createForm.summary || !createForm.full_blog) return;
     setSaving(true);
     try {
       const res = await fetch("/api/blog", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(createForm),
+        body: JSON.stringify({ ...createForm, isDraft: asDraft }),
       });
       if (res.ok) {
         setIsCreating(false);
@@ -162,6 +174,7 @@ export default function AdminDashboard() {
       summary: post.summary,
       full_blog: post.full_blog,
       category: post.category ?? "",
+      isDraft: post.isDraft,
     });
   };
 
@@ -178,6 +191,21 @@ export default function AdminDashboard() {
         setEditingPost(null);
         await fetchPosts();
       }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Quick-publish a draft without opening the edit modal
+  const handlePublish = async (post: BlogPost) => {
+    setSaving(true);
+    try {
+      await fetch("/api/blog", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...post, isDraft: false }),
+      });
+      await fetchPosts();
     } finally {
       setSaving(false);
     }
@@ -259,8 +287,8 @@ export default function AdminDashboard() {
                   <FileText className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{posts.length}</p>
-                  <p className="text-sm text-muted-foreground">Total Posts</p>
+                  <p className="text-2xl font-bold text-foreground">{publishedPosts.length}</p>
+                  <p className="text-sm text-muted-foreground">Published</p>
                 </div>
               </div>
             </CardContent>
@@ -268,14 +296,12 @@ export default function AdminDashboard() {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-accent" />
+                <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center">
+                  <Pencil className="w-5 h-5 text-amber-500" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {Array.from(new Set(posts.map((p) => p.category).filter(Boolean))).length}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Categories</p>
+                  <p className="text-2xl font-bold text-foreground">{draftPosts.length}</p>
+                  <p className="text-sm text-muted-foreground">Drafts</p>
                 </div>
               </div>
             </CardContent>
@@ -287,10 +313,8 @@ export default function AdminDashboard() {
                   <TrendingUp className="w-5 h-5 text-premium" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {posts.length > 0 ? formatDate(posts[0].created_at) : "—"}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Latest Post</p>
+                  <p className="text-2xl font-bold text-foreground">{posts.length}</p>
+                  <p className="text-sm text-muted-foreground">Total Posts</p>
                 </div>
               </div>
             </CardContent>
@@ -301,7 +325,16 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <CardTitle>Blog Posts ({posts.length})</CardTitle>
+              <div className="flex items-center gap-4 flex-wrap">
+                <CardTitle>Blog Posts ({posts.length})</CardTitle>
+                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
+                  <TabsList>
+                    <TabsTrigger value="all">All ({posts.length})</TabsTrigger>
+                    <TabsTrigger value="published">Published ({publishedPosts.length})</TabsTrigger>
+                    <TabsTrigger value="drafts">Drafts ({draftPosts.length})</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -346,7 +379,12 @@ export default function AdminDashboard() {
                       <div className="min-w-0">
                         <h3 className="font-semibold text-foreground truncate">{post.title}</h3>
                         <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">{post.summary}</p>
-                        <div className="flex items-center gap-2 mt-1.5">
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          {post.isDraft ? (
+                            <Badge variant="outline" className="text-xs border-amber-400 text-amber-600 bg-amber-50">Draft</Badge>
+                          ) : (
+                            <Badge variant="default" className="text-xs bg-green-600 text-white">Published</Badge>
+                          )}
                           {post.category && <Badge variant="secondary" className="text-xs">{post.category}</Badge>}
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
@@ -356,6 +394,19 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
+                      {post.isDraft && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          title="Publish"
+                          className="text-green-700 border-green-300 hover:bg-green-50 hidden sm:flex"
+                          disabled={saving}
+                          onClick={() => handlePublish(post)}
+                        >
+                          <Send className="w-3 h-3 mr-1" />
+                          Publish
+                        </Button>
+                      )}
                       <Button variant="ghost" size="icon" title="Preview" onClick={() => setPreviewPost(post)}>
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -427,11 +478,19 @@ export default function AdminDashboard() {
           <div className="flex justify-end gap-2 px-6 py-4 border-t border-border flex-shrink-0">
             <Button variant="outline" onClick={() => setIsCreating(false)}>Cancel</Button>
             <Button
-              onClick={handleCreate}
+              variant="outline"
+              onClick={() => handleCreate(true)}
               disabled={saving || !createForm.title || !createForm.summary || !createForm.full_blog}
             >
-              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
-              Publish Post
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Pencil className="w-4 h-4 mr-2" />}
+              Save as Draft
+            </Button>
+            <Button
+              onClick={() => handleCreate(false)}
+              disabled={saving || !createForm.title || !createForm.summary || !createForm.full_blog}
+            >
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+              Publish
             </Button>
           </div>
         </DialogContent>
@@ -479,6 +538,21 @@ export default function AdminDashboard() {
                 onChange={(e) => setEditForm({ ...editForm, full_blog: e.target.value })}
                 rows={10}
               />
+            </div>
+            <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-secondary/30">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">Status</p>
+                <p className="text-xs text-muted-foreground">{editForm.isDraft ? "Draft — not visible on the public blog" : "Published — visible to all visitors"}</p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant={editForm.isDraft ? "outline" : "default"}
+                className={editForm.isDraft ? "border-amber-400 text-amber-600 hover:bg-amber-50" : "bg-green-600 hover:bg-green-700 text-white"}
+                onClick={() => setEditForm({ ...editForm, isDraft: !editForm.isDraft })}
+              >
+                {editForm.isDraft ? "Draft" : "Published"}
+              </Button>
             </div>
           </div>
           <div className="flex justify-end gap-2 px-6 py-4 border-t border-border flex-shrink-0">
