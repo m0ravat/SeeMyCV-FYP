@@ -10,10 +10,6 @@ import {
   BorderStyle,
   HeadingLevel,
   ExternalHyperlink,
-  TableRow,
-  TableCell,
-  Table,
-  WidthType,
   LevelFormat,
   convertInchesToTwip,
 } from 'docx';
@@ -132,7 +128,7 @@ export async function POST(request: Request) {
     // 2. Fetch user profile + cv header
     const profileResult = await query(
       `SELECT p.first_name, p.last_name, p.email, p.phone_number, p.person_location,
-              p.linkedin_url, p.personal_website, p.github_url,
+              p.linkedin_url, p.personal_website,
               c.cv_id, c.about_me
        FROM profile p
        LEFT JOIN cv c ON c.profile_id = p.profile_id
@@ -278,13 +274,15 @@ export async function POST(request: Request) {
     // ── Projects ──
     if (includes('project') && projRows.rows.length > 0) {
       children.push(sectionHeading('Projects'));
-      // GitHub link at the top if available
-      if (p.github_url) {
-        children.push(linkLine('GitHub:', p.github_url));
+      // LinkedIn / personal website link at the top of projects if available
+      if (p.personal_website) {
+        children.push(linkLine('Website:', p.personal_website));
+      } else if (p.linkedin_url) {
+        children.push(linkLine('LinkedIn:', p.linkedin_url));
       }
       for (const proj of projRows.rows as Record<string, string>[]) {
         children.push(entryHeader(proj.title));
-        if (proj.link && proj.link !== p.github_url) {
+        if (proj.link) {
           children.push(linkLine('Link:', proj.link));
         }
         const descLines = (proj.description ?? proj.summary ?? '').split('\n');
