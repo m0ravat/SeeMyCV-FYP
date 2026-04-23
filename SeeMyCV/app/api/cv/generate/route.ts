@@ -8,7 +8,6 @@ import {
   TextRun,
   AlignmentType,
   BorderStyle,
-  HeadingLevel,
   ExternalHyperlink,
   LevelFormat,
   ShadingType,
@@ -43,12 +42,12 @@ function centeredContactWhite(children: (TextRun | ExternalHyperlink)[]): Paragr
 /** Section heading with a bottom border (mimics HR beneath the heading) */
 function sectionHeading(text: string): Paragraph {
   return new Paragraph({
-    heading: HeadingLevel.HEADING_2,
+    // Don't use HeadingLevel — it inherits theme colour (blue) from Word styles
     border: {
       bottom: { style: BorderStyle.SINGLE, size: 6, color: '000000', space: 4 },
     },
     spacing: { before: 240, after: 80 },
-    children: [new TextRun({ text, bold: true, size: pt(12), font: FONT })],
+    children: [new TextRun({ text, bold: true, size: pt(12), font: FONT, color: '000000' })],
   });
 }
 
@@ -233,34 +232,57 @@ export async function POST(request: Request) {
     // ── Skills ──
     if (includes('skill') && skillRows.rows.length > 0) {
       children.push(sectionHeading('Skills'));
-      const soft = skillRows.rows
-        .filter((s: Record<string, unknown>) => s.is_soft_skill)
-        .map((s: Record<string, string>) => s.name)
-        .join(', ');
-      const hard = skillRows.rows
-        .filter((s: Record<string, unknown>) => !s.is_soft_skill)
-        .map((s: Record<string, string>) => s.name)
-        .join(', ');
-      if (soft)
-        children.push(
-          new Paragraph({
-            children: [
-              new TextRun({ text: 'Soft skills - ', bold: true, size: pt(11) }),
-              new TextRun({ text: soft, size: pt(11) }),
-            ],
-            spacing: { after: 40 },
-          }),
+
+      const formatTitleLower = (format.title ?? '').toLowerCase();
+      const isGenericOrCustomer =
+        formatTitleLower.includes('generic') || formatTitleLower.includes('customer');
+
+      if (isGenericOrCustomer) {
+        // Soft skills only — each as a bullet "Skill name - description"
+        const softSkills = (skillRows.rows as Record<string, string>[]).filter(
+          s => s.is_soft_skill,
         );
-      if (hard)
-        children.push(
-          new Paragraph({
-            children: [
-              new TextRun({ text: 'Hard Skills - ', bold: true, size: pt(11) }),
-              new TextRun({ text: hard, size: pt(11) }),
-            ],
-            spacing: { after: 80 },
-          }),
-        );
+        for (const s of softSkills) {
+          const line = s.description ? `${s.name} - ${s.description}` : s.name;
+          children.push(
+            new Paragraph({
+              bullet: { level: 0 },
+              indent: { left: convertInchesToTwip(0.25), hanging: convertInchesToTwip(0.25) },
+              children: [new TextRun({ text: line, size: pt(11), font: FONT, color: '000000' })],
+            }),
+          );
+        }
+      } else {
+        // Technical formats — soft skills comma list then hard skills comma list
+        const soft = (skillRows.rows as Record<string, string>[])
+          .filter(s => s.is_soft_skill)
+          .map(s => s.name)
+          .join(', ');
+        const hard = (skillRows.rows as Record<string, string>[])
+          .filter(s => !s.is_soft_skill)
+          .map(s => s.name)
+          .join(', ');
+        if (soft)
+          children.push(
+            new Paragraph({
+              children: [
+                new TextRun({ text: 'Soft Skills - ', bold: true, size: pt(11), font: FONT, color: '000000' }),
+                new TextRun({ text: soft, size: pt(11), font: FONT, color: '000000' }),
+              ],
+              spacing: { after: 40 },
+            }),
+          );
+        if (hard)
+          children.push(
+            new Paragraph({
+              children: [
+                new TextRun({ text: 'Hard Skills - ', bold: true, size: pt(11), font: FONT, color: '000000' }),
+                new TextRun({ text: hard, size: pt(11), font: FONT, color: '000000' }),
+              ],
+              spacing: { after: 80 },
+            }),
+          );
+      }
     }
 
     // ── Experience ──
