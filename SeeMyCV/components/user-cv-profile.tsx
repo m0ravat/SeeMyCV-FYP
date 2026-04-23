@@ -35,10 +35,12 @@ import {
 } from "lucide-react";
 
 interface SkillItem {
+  skill_id: string;
   name: string;
   level: "beginner" | "intermediate" | "advanced" | "expert";
   yearsExperience?: number;
   description?: string;
+  is_soft_skill?: boolean;
 }
 
 interface Skill {
@@ -124,9 +126,11 @@ function transformSkills(dbSkills: any[]): Skill[] {
     const category = skill.is_soft_skill ? 'Soft Skills' : 'Technical Skills';
     if (!grouped[category]) grouped[category] = [];
     grouped[category].push({
+      skill_id: skill.skill_id,
       name: skill.name,
       level: skill.skill_level || 'intermediate',
       description: skill.description,
+      is_soft_skill: skill.is_soft_skill,
     });
   });
   
@@ -726,6 +730,11 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
   const [showAddExperienceDialog, setShowAddExperienceDialog] = useState(false);
   const [showAddEducationDialog, setShowAddEducationDialog] = useState(false);
   const [showAddSkillDialog, setShowAddSkillDialog] = useState(false);
+  const [showEditSkillDialog, setShowEditSkillDialog] = useState(false);
+  const [editSkillName, setEditSkillName] = useState('');
+  const [editSkillDescription, setEditSkillDescription] = useState('');
+  const [editSkillIsSoft, setEditSkillIsSoft] = useState(false);
+  const [editSkillSaving, setEditSkillSaving] = useState(false);
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
   const [showAddCertificationDialog, setShowAddCertificationDialog] = useState(false);
   const [showEditExperienceDialog, setShowEditExperienceDialog] = useState(false);
@@ -797,12 +806,24 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
   };
 
   const handleEditSkill = () => {
-    console.log("Edit skill:", selectedSkill?.name);
+    setShowEditSkillDialog(true);
   };
 
-  const handleDeleteSkill = () => {
-    console.log("Delete skill:", selectedSkill?.name);
-    setSelectedSkill(null);
+  const handleDeleteSkill = async () => {
+    if (!selectedSkill?.skill_id) return;
+    try {
+      const response = await fetch("/api/cv/delete-skill", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ skillId: selectedSkill.skill_id }),
+      });
+      if (!response.ok) throw new Error("Failed to delete skill");
+      setSelectedSkill(null);
+      refetch();
+    } catch (error) {
+      console.error("[v0] Error deleting skill:", error);
+      alert("Failed to delete skill. Please try again.");
+    }
   };
 
   const handleEditExperience = () => {
@@ -1065,13 +1086,93 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
 
       {/* Detail Modals */}
       <SkillDetailModal
-        isOpen={!!selectedSkill}
+        isOpen={!!selectedSkill && !showEditSkillDialog}
         onClose={() => setSelectedSkill(null)}
         skill={selectedSkill}
         isOwnProfile={isOwnProfile}
         onEdit={handleEditSkill}
         onDelete={handleDeleteSkill}
       />
+
+      {/* Edit Skill Dialog */}
+      <Dialog
+        open={showEditSkillDialog}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowEditSkillDialog(false);
+          } else {
+            setEditSkillName(selectedSkill?.name ?? '');
+            setEditSkillDescription(selectedSkill?.description ?? '');
+            setEditSkillIsSoft(selectedSkill?.is_soft_skill ?? false);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md" aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle>Edit Skill</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Skill Name</label>
+              <Input
+                value={editSkillName}
+                onChange={(e) => setEditSkillName(e.target.value)}
+                placeholder="e.g. React, Teamwork..."
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Description (optional)</label>
+              <Input
+                value={editSkillDescription}
+                onChange={(e) => setEditSkillDescription(e.target.value)}
+                placeholder="Brief description..."
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="editIsSoft"
+                checked={editSkillIsSoft}
+                onChange={(e) => setEditSkillIsSoft(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <label htmlFor="editIsSoft" className="text-sm font-medium cursor-pointer">Soft skill</label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setShowEditSkillDialog(false)}>Cancel</Button>
+            <Button
+              disabled={editSkillSaving || !editSkillName.trim()}
+              onClick={async () => {
+                if (!selectedSkill?.skill_id) return;
+                setEditSkillSaving(true);
+                try {
+                  const res = await fetch('/api/cv/edit-skill', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      skillId: selectedSkill.skill_id,
+                      name: editSkillName.trim(),
+                      description: editSkillDescription.trim() || null,
+                      isSoftSkill: editSkillIsSoft,
+                    }),
+                  });
+                  if (!res.ok) throw new Error('Failed to update skill');
+                  setShowEditSkillDialog(false);
+                  setSelectedSkill(null);
+                  refetch();
+                } catch {
+                  alert('Failed to update skill. Please try again.');
+                } finally {
+                  setEditSkillSaving(false);
+                }
+              }}
+            >
+              {editSkillSaving ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <ExperienceDetailModal
         isOpen={!!selectedExperience}
         onClose={() => setSelectedExperience(null)}
