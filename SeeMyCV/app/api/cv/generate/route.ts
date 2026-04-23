@@ -11,18 +11,32 @@ import {
   HeadingLevel,
   ExternalHyperlink,
   LevelFormat,
+  ShadingType,
   convertInchesToTwip,
 } from 'docx';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
+const FONT = 'Arial';
 const pt = (n: number) => n * 2; // half-points used by docx for font size
 
-/** Bold centred paragraph */
-function centeredBold(text: string, size = 28): Paragraph {
+/** Bold centred paragraph — white text on black background for header */
+function centeredBoldWhite(text: string, size = pt(16)): Paragraph {
   return new Paragraph({
     alignment: AlignmentType.CENTER,
-    children: [new TextRun({ text, bold: true, size })],
+    shading: { type: ShadingType.SOLID, color: '000000', fill: '000000' },
+    spacing: { before: 80, after: 0 },
+    children: [new TextRun({ text, bold: true, size, color: 'FFFFFF', font: FONT })],
+  });
+}
+
+/** Centred contact line — white text on black */
+function centeredContactWhite(children: (TextRun | ExternalHyperlink)[]): Paragraph {
+  return new Paragraph({
+    alignment: AlignmentType.CENTER,
+    shading: { type: ShadingType.SOLID, color: '000000', fill: '000000' },
+    spacing: { before: 0, after: 160 },
+    children,
   });
 }
 
@@ -34,7 +48,7 @@ function sectionHeading(text: string): Paragraph {
       bottom: { style: BorderStyle.SINGLE, size: 6, color: '000000', space: 4 },
     },
     spacing: { before: 240, after: 80 },
-    children: [new TextRun({ text, bold: true, size: pt(12) })],
+    children: [new TextRun({ text, bold: true, size: pt(12), font: FONT })],
   });
 }
 
@@ -48,7 +62,7 @@ function bullets(lines: string[]): Paragraph[] {
         new Paragraph({
           bullet: { level: 0 },
           indent: { left: convertInchesToTwip(0.25), hanging: convertInchesToTwip(0.25) },
-          children: [new TextRun({ text: line, size: pt(11) })],
+          children: [new TextRun({ text: line, size: pt(11), font: FONT })],
         }),
     );
 }
@@ -57,14 +71,14 @@ function bullets(lines: string[]): Paragraph[] {
 function entryHeader(text: string): Paragraph {
   return new Paragraph({
     spacing: { before: 120, after: 40 },
-    children: [new TextRun({ text, bold: true, size: pt(11) })],
+    children: [new TextRun({ text, bold: true, size: pt(11), font: FONT })],
   });
 }
 
 /** Plain paragraph */
 function plain(text: string, size = pt(11)): Paragraph {
   return new Paragraph({
-    children: [new TextRun({ text, size })],
+    children: [new TextRun({ text, size, font: FONT })],
     spacing: { after: 40 },
   });
 }
@@ -74,15 +88,11 @@ function linkLine(label: string, url: string): Paragraph {
   return new Paragraph({
     spacing: { before: 40, after: 40 },
     children: [
-      new TextRun({ text: `${label} `, bold: true, size: pt(11) }),
+      new TextRun({ text: `${label} `, bold: true, size: pt(11), font: FONT }),
       new ExternalHyperlink({
         link: url,
         children: [
-          new TextRun({
-            text: url,
-            style: 'Hyperlink',
-            size: pt(11),
-          }),
+          new TextRun({ text: url, style: 'Hyperlink', size: pt(11), font: FONT }),
         ],
       }),
     ],
@@ -174,7 +184,7 @@ export async function POST(request: Request) {
         : { rows: [] },
       includes('skill')
         ? query(
-            `SELECT name, skill_level, is_soft_skill FROM skill WHERE cv_id = $1 ORDER BY is_soft_skill, name`,
+            `SELECT name, description, is_soft_skill FROM skill WHERE cv_id = $1 ORDER BY is_soft_skill, name`,
             [cvId],
           )
         : { rows: [] },
@@ -183,22 +193,22 @@ export async function POST(request: Request) {
     // 4. Build docx children array ─────────────────────────────────────────
     const children: (Paragraph | Table)[] = [];
 
-    // ── Header ──
-    children.push(centeredBold(`${p.first_name} ${p.last_name}`, pt(16)));
+    // ── Header (black background, white text) ──
+    children.push(centeredBoldWhite(`${p.first_name} ${p.last_name}`));
 
-    // Contact line: Location | Phone | Email | Website
+    // Contact line: Location | Phone | Email | Website — white text on black
     const contactParts: (TextRun | ExternalHyperlink)[] = [];
     const addPipe = () =>
-      contactParts.push(new TextRun({ text: ' | ', size: pt(11) }));
+      contactParts.push(new TextRun({ text: ' | ', size: pt(11), color: 'FFFFFF', font: FONT }));
 
-    if (p.person_location) contactParts.push(new TextRun({ text: p.person_location, size: pt(11) }));
-    if (p.phone_number) { addPipe(); contactParts.push(new TextRun({ text: p.phone_number, size: pt(11) })); }
+    if (p.person_location) contactParts.push(new TextRun({ text: p.person_location, size: pt(11), color: 'FFFFFF', font: FONT }));
+    if (p.phone_number) { addPipe(); contactParts.push(new TextRun({ text: p.phone_number, size: pt(11), color: 'FFFFFF', font: FONT })); }
     if (p.email) {
       addPipe();
       contactParts.push(
         new ExternalHyperlink({
           link: `mailto:${p.email}`,
-          children: [new TextRun({ text: p.email, style: 'Hyperlink', size: pt(11) })],
+          children: [new TextRun({ text: p.email, style: 'Hyperlink', size: pt(11), color: 'FFFFFF', font: FONT })],
         }),
       );
     }
@@ -207,18 +217,12 @@ export async function POST(request: Request) {
       contactParts.push(
         new ExternalHyperlink({
           link: p.personal_website,
-          children: [new TextRun({ text: p.personal_website, style: 'Hyperlink', size: pt(11) })],
+          children: [new TextRun({ text: p.personal_website, style: 'Hyperlink', size: pt(11), color: 'FFFFFF', font: FONT })],
         }),
       );
     }
 
-    children.push(
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 160 },
-        children: contactParts,
-      }),
-    );
+    children.push(centeredContactWhite(contactParts));
 
     // ── About Me ──
     if (includes('about') && p.about_me) {
