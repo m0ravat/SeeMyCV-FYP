@@ -1,25 +1,12 @@
 import { Pool, PoolClient } from 'pg';
 
-const sslConfig = { rejectUnauthorized: false };
-
-// Pooled connection — for regular reads/writes (uses pgBouncer, no transactions)
+// Create a connection pool for PostgreSQL
 const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.DIRECT_URL,
-  ssl: sslConfig,
-  max: 20,
+  connectionString: process.env.DATABASE_URL || process.env.DIRECT_URL,
+  max: 20, // Maximum number of connections in the pool
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-  statement_timeout: 30000,
-});
-
-// Direct (non-pooled) connection — required for transactions (pgBouncer strips BEGIN/COMMIT)
-const directPool = new Pool({
-  connectionString: process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL || process.env.DIRECT_URL,
-  ssl: sslConfig,
-  max: 5,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-  statement_timeout: 30000,
+  connectionTimeoutMillis: 5000, // Increased from 2000ms to 5000ms
+  statement_timeout: 30000, // 30 second query timeout
 });
 
 pool.on('error', (err) => {
@@ -53,7 +40,7 @@ export async function query(
  * @returns Promise with a PoolClient
  */
 export async function getClient(): Promise<PoolClient> {
-  const client = await directPool.connect();
+  const client = await pool.connect();
   return client;
 }
 

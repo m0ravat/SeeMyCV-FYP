@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
       // 6. Insert projects
       if (projects && Array.isArray(projects) && projects.length > 0) {
         for (const proj of projects) {
-          if (proj.title) {
+          if (proj.title) { // Only insert if has data
             await client.query(
               `INSERT INTO project (cv_id, title, summary, description, skills, link, start_date, end_date)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
@@ -166,11 +166,9 @@ export async function POST(req: NextRequest) {
                 proj.endDate || null,
               ]
             );
-            console.log('[signup] inserted project:', proj.title);
           }
         }
       }
-      console.log('[signup] projects inserted:', projects?.length ?? 0);
 
       // 7. Insert certifications
       if (certifications && Array.isArray(certifications) && certifications.length > 0) {
@@ -232,10 +230,10 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    console.error('[v0] Signup error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    console.error('[signup] error:', errorMessage, error);
     return NextResponse.json(
-      { error: errorMessage.includes('duplicate key') ? 'Username or email already exists' : errorMessage },
+      { error: errorMessage.includes('duplicate key') ? 'User ID conflict - please try again' : 'Internal server error' },
       { status: 500 }
     );
   }

@@ -190,19 +190,6 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
   const [showCVPreview, setShowCVPreview] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
-  const [jobDescription, setJobDescription] = useState("");
-  const [aiFeedbackTemplateSections, setAiFeedbackTemplateSections] = useState<string[]>([]);
-  const [aiFeedbackResult, setAiFeedbackResult] = useState<{
-    overallScore: number;
-    matchSummary: string;
-    strengths: string[];
-    improvements: string[];
-    atsScore: number;
-    atsTip: string;
-    industryTips: string[];
-    missingKeywords: string[];
-  } | null>(null);
-  const [aiFeedbackError, setAiFeedbackError] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState("contact");
   const [formData, setFormData] = useState<CVFormData>(initialFormData);
 
