@@ -10,6 +10,7 @@ import {
   BorderStyle,
   ExternalHyperlink,
   LevelFormat,
+  TabStopType,
   convertInchesToTwip,
 } from 'docx';
 
@@ -217,6 +218,15 @@ export async function POST(request: Request) {
         }),
       );
     }
+    if (p.linkedin_url) {
+      addPipe();
+      contactParts.push(
+        new ExternalHyperlink({
+          link: p.linkedin_url,
+          children: [new TextRun({ text: p.linkedin_url, size: pt(11), color: '000000', font: FONT })],
+        }),
+      );
+    }
 
     children.push(centeredContactWhite(contactParts));
 
@@ -287,8 +297,19 @@ export async function POST(request: Request) {
       children.push(sectionHeading('Experience'));
       for (const e of expRows.rows as Record<string, string>[]) {
         const dateRange = `${fmtDate(e.start_date)} - ${fmtDate(e.end_date)}`;
-        const header = [e.title, dateRange].filter(Boolean).join(', ');
-        children.push(entryHeader(header));
+        // "Title (Company / Location)          (Date Range)"
+        const locationPart = e.location ? ` / ${e.location}` : '';
+        const titlePart = `${e.title}${locationPart}`;
+        children.push(
+          new Paragraph({
+            spacing: { before: 120, after: 40 },
+            tabStops: [{ type: TabStopType.RIGHT, position: convertInchesToTwip(6.5) }],
+            children: [
+              new TextRun({ text: titlePart, bold: true, size: pt(11), font: FONT, color: '000000' }),
+              new TextRun({ text: `\t(${dateRange})`, size: pt(11), font: FONT, color: '000000' }),
+            ],
+          }),
+        );
         const descLines = (e.description ?? e.summary ?? '').split('\n');
         children.push(...bullets(descLines));
       }
@@ -297,14 +318,22 @@ export async function POST(request: Request) {
     // ── Projects ──
     if (includes('project') && projRows.rows.length > 0) {
       children.push(sectionHeading('Projects'));
-      // LinkedIn / personal website link at the top of projects if available
-      if (p.personal_website) {
-        children.push(linkLine('Website:', p.personal_website));
-      } else if (p.linkedin_url) {
-        children.push(linkLine('LinkedIn:', p.linkedin_url));
-      }
       for (const proj of projRows.rows as Record<string, string>[]) {
-        children.push(entryHeader(proj.title));
+        const dateRange = proj.start_date
+          ? `${fmtDate(proj.start_date)} - ${fmtDate(proj.end_date)}`
+          : null;
+        // Title line with optional date right-aligned
+        children.push(
+          new Paragraph({
+            spacing: { before: 120, after: 40 },
+            tabStops: dateRange ? [{ type: TabStopType.RIGHT, position: convertInchesToTwip(6.5) }] : [],
+            children: [
+              new TextRun({ text: proj.title, bold: true, size: pt(11), font: FONT, color: '000000' }),
+              ...(dateRange ? [new TextRun({ text: `\t(${dateRange})`, size: pt(11), font: FONT, color: '000000' })] : []),
+            ],
+          }),
+        );
+        // URL line beneath title
         if (proj.link) {
           children.push(linkLine('Link:', proj.link));
         }
@@ -319,12 +348,14 @@ export async function POST(request: Request) {
       for (const e of eduRows.rows as Record<string, string>[]) {
         const degree = e.achieved ?? e.target ?? '';
         const dates = `${fmtDate(e.start_date)} - ${fmtDate(e.end_date)}`;
+        // "Degree (Institute)          (Dates)"
         children.push(
           new Paragraph({
-            spacing: { before: 80, after: 40 },
+            spacing: { before: 120, after: 40 },
+            tabStops: [{ type: TabStopType.RIGHT, position: convertInchesToTwip(6.5) }],
             children: [
-              new TextRun({ text: `${e.institute_name} (${dates})`, bold: true, size: pt(11) }),
-              new TextRun({ text: ` - ${degree}`, size: pt(11) }),
+              new TextRun({ text: `${degree} (${e.institute_name})`, bold: true, size: pt(11), font: FONT, color: '000000' }),
+              new TextRun({ text: `\t(${dates})`, size: pt(11), font: FONT, color: '000000' }),
             ],
           }),
         );
@@ -338,9 +369,20 @@ export async function POST(request: Request) {
     if ((includes('cert') || includes('qualification')) && certRows.rows.length > 0) {
       children.push(sectionHeading('Certifications'));
       for (const c of certRows.rows as Record<string, string>[]) {
-        children.push(entryHeader(`${c.title} — ${c.institute} (${fmtDate(c.issue_date)})`));
+        // "Title (Institute)          (Date)"
+        children.push(
+          new Paragraph({
+            spacing: { before: 120, after: 40 },
+            tabStops: [{ type: TabStopType.RIGHT, position: convertInchesToTwip(6.5) }],
+            children: [
+              new TextRun({ text: `${c.title} (${c.institute ?? ''})`, bold: true, size: pt(11), font: FONT, color: '000000' }),
+              new TextRun({ text: `\t(${fmtDate(c.issue_date)})`, size: pt(11), font: FONT, color: '000000' }),
+            ],
+          }),
+        );
+        // URL line if present
+        if (c.link) children.push(linkLine('Link:', c.link));
         if (c.summary) children.push(...bullets(c.summary.split('\n')));
-        if (c.skills) children.push(plain(`Skills: ${c.skills}`));
       }
     }
 
