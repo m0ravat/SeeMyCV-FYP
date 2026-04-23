@@ -8,7 +8,7 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'CVConnect - Professional CV Sharing Platform',
+  title: 'SeeMyCV - Professional CV Sharing Platform',
   description: 'Share your professional CV, get feedback, and connect with recruiters. Build industry-standard CVs with AI-powered feedback.',
   generator: 'v0.app',
   icons: {

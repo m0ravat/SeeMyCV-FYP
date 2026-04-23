@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -48,11 +49,17 @@ interface SettingsPageProps {
 
 export function SettingsPage({ isPremium = false, onUpgrade }: SettingsPageProps) {
   const [activeTab, setActiveTab] = useState("account");
+  const router = useRouter();
   
   // Account Settings
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   
   // Privacy Settings
   const [privacyStatus, setPrivacyStatus] = useState("open");
@@ -65,6 +72,87 @@ export function SettingsPage({ isPremium = false, onUpgrade }: SettingsPageProps
     { value: "unavailable", label: "Temporarily unavailable", icon: Clock, description: "Show that you're not available" },
     { value: "private", label: "Private", icon: Lock, description: "No one can send you messages" },
   ];
+
+  const handleChangePassword = async () => {
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError("All password fields are required");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordError("New password must be at least 8 characters");
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      const response = await fetch("/api/user/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        setPasswordError(error.error || "Failed to change password");
+        setIsChangingPassword(false);
+        return;
+      }
+
+      setPasswordSuccess("Password changed successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setIsChangingPassword(false);
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setPasswordSuccess(""), 3000);
+    } catch (error) {
+      console.error("[v0] Password change error:", error);
+      setPasswordError("An error occurred while changing password");
+      setIsChangingPassword(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      alert("Please enter your password to delete your account");
+      return;
+    }
+
+    setIsDeletingAccount(true);
+
+    try {
+      const response = await fetch("/api/user/delete-account", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || "Failed to delete account");
+        setIsDeletingAccount(false);
+        return;
+      }
+
+      // Account deleted successfully, redirect to login
+      router.push("/login");
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred while deleting account");
+      setIsDeletingAccount(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
@@ -103,6 +191,7 @@ export function SettingsPage({ isPremium = false, onUpgrade }: SettingsPageProps
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
+                  disabled={isChangingPassword}
                 />
               </div>
               <div>
@@ -111,6 +200,7 @@ export function SettingsPage({ isPremium = false, onUpgrade }: SettingsPageProps
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
+                  disabled={isChangingPassword}
                 />
               </div>
               <div>
@@ -119,9 +209,21 @@ export function SettingsPage({ isPremium = false, onUpgrade }: SettingsPageProps
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isChangingPassword}
                 />
               </div>
-              <Button>Change Password</Button>
+              {passwordError && (
+                <div className="text-destructive text-sm">{passwordError}</div>
+              )}
+              {passwordSuccess && (
+                <div className="text-green-600 text-sm">{passwordSuccess}</div>
+              )}
+              <Button 
+                onClick={handleChangePassword}
+                disabled={isChangingPassword}
+              >
+                {isChangingPassword ? "Changing..." : "Change Password"}
+              </Button>
             </CardContent>
           </Card>
 
@@ -130,7 +232,7 @@ export function SettingsPage({ isPremium = false, onUpgrade }: SettingsPageProps
             <CardHeader>
               <CardTitle>Subscription</CardTitle>
               <CardDescription>
-                Manage your CVConnect subscription
+                Manage your SeeMyCV subscription
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -142,7 +244,7 @@ export function SettingsPage({ isPremium = false, onUpgrade }: SettingsPageProps
                       <div>
                         <p className="font-medium text-foreground">Premium Plan</p>
                         <p className="text-sm text-muted-foreground">
-                          Renews on February 15, 2024
+                          Lifetime access — one-time payment
                         </p>
                       </div>
                     </div>
@@ -222,10 +324,24 @@ export function SettingsPage({ isPremium = false, onUpgrade }: SettingsPageProps
                         account and remove all your data from our servers.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
+                    <div className="py-4">
+                      <Label>Enter your password to confirm</Label>
+                      <Input
+                        type="password"
+                        placeholder="Enter your password"
+                        value={deletePassword}
+                        onChange={(e) => setDeletePassword(e.target.value)}
+                        disabled={isDeletingAccount}
+                      />
+                    </div>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction className="bg-destructive text-destructive-foreground">
-                        Delete Account
+                      <AlertDialogCancel disabled={isDeletingAccount}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        className="bg-destructive text-destructive-foreground"
+                        onClick={handleDeleteAccount}
+                        disabled={isDeletingAccount}
+                      >
+                        {isDeletingAccount ? "Deleting..." : "Delete Account"}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

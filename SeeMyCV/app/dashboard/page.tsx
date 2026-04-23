@@ -8,10 +8,14 @@ import { ProfilePage } from "@/components/profile-page";
 import { CVBuilder } from "@/components/cv-builder";
 import { PremiumPage } from "@/components/premium-page";
 import { SettingsPage } from "@/components/settings-page";
+import { useUser } from "@/lib/use-user";
 
 export default function DashboardPage() {
   const [currentPage, setCurrentPage] = useState("feed");
-  const [isPremium, setIsPremium] = useState(false);
+  const { userData, loading } = useUser();
+
+  // Use premium status from fetched user data
+  const isPremium = userData?.user.isPremium || false;
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page);
@@ -22,7 +26,7 @@ export default function DashboardPage() {
   };
 
   const handleSubscribe = () => {
-    setIsPremium(true);
+    // Premium status is now managed by backend
     setCurrentPage("feed");
   };
 
@@ -35,9 +39,10 @@ export default function DashboardPage() {
       case "my-cvs":
         return <CVBuilder isPremium={isPremium} onUpgrade={handleUpgrade} />;
       case "premium":
-        return <PremiumPage onSubscribe={handleSubscribe} />;
+        return <PremiumPage onSubscribe={handleSubscribe} isPremium={isPremium} />;
       case "settings":
         return <SettingsPage isPremium={isPremium} onUpgrade={handleUpgrade} />;
+
       default:
         return <PublicFeed />;
     }
@@ -57,7 +62,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="font-semibold text-foreground mb-4">CVConnect</h3>
+              <h3 className="font-semibold text-foreground mb-4">SeeMyCV</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
                   <Link href="/" className="hover:text-foreground transition-colors">
@@ -70,9 +75,9 @@ export default function DashboardPage() {
                   </Link>
                 </li>
                 <li>
-                  <button className="hover:text-foreground transition-colors">
-                    About Us
-                  </button>
+                  <Link href="/support" className="hover:text-foreground transition-colors">
+                    Support
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -148,7 +153,7 @@ export default function DashboardPage() {
           </div>
           <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
             <p>
-              2024 CVConnect. All rights reserved. Built with privacy in mind -
+              2026 SeeMyCV. All rights reserved. Built with privacy in mind -
               no profile pictures to prevent discrimination.
             </p>
           </div>

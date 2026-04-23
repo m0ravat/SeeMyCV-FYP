@@ -110,6 +110,8 @@ export default function SignupPage() {
     personalWebsite: "",
     isProfilePublic: true,
     isContactDetailsPublic: true,
+    isSearchable: true,
+    contactPublic: true,
     aboutMe: "",
     experience: [] as ExperienceEntry[],
     skills: [] as SkillEntry[],
@@ -257,16 +259,64 @@ export default function SignupPage() {
     });
   };
 
-  const handleStep1Submit = (e: React.FormEvent) => {
+  const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!credentials.username || !credentials.password) {
+      alert("Please fill in all fields");
+      return;
+    }
     setStep(2);
   };
 
   const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate processing - instant redirect for demo
-    router.push("/dashboard");
+    try {
+      // Call signup API with all profile data
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: credentials.username,
+          password: credentials.password,
+          firstName: profileData.firstName,
+          lastName: profileData.lastName,
+          email: profileData.email,
+          phoneNumber: profileData.phoneNumber,
+          location: profileData.location,
+          linkedInUrl: profileData.linkedInUrl,
+          personalWebsite: profileData.personalWebsite,
+          isProfilePublic: profileData.isProfilePublic,
+          isContactDetailsPublic: profileData.isContactDetailsPublic,
+          isSearchable: profileData.isSearchable,
+          contactPublic: profileData.contactPublic,
+          aboutMe: profileData.aboutMe,
+          experience: profileData.experience,
+          skills: profileData.skills,
+          education: profileData.education,
+          projects: profileData.projects,
+          certifications: profileData.certifications,
+          isPremiumPlan: isPremiumPlan,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || "Signup failed");
+        setIsLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+      console.log(data);
+      
+      // Redirect to dashboard or profile completion
+      router.push("/dashboard");
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred during signup");
+      setIsLoading(false);
+    }
   };
 
   const benefits = [
@@ -287,7 +337,7 @@ export default function SignupPage() {
             <div className="w-10 h-10 bg-primary-foreground/20 rounded-lg flex items-center justify-center">
               <FileText className="w-6 h-6" />
             </div>
-            <span className="text-2xl font-bold">CVConnect</span>
+            <span className="text-2xl font-bold">SeeMyCV</span>
           </Link>
 
           <div className="space-y-8">
@@ -317,7 +367,7 @@ export default function SignupPage() {
           </div>
 
           <div className="text-primary-foreground/60 text-sm">
-            2024 CVConnect. Privacy-first professional networking.
+            2026 SeeMyCV. Privacy-first professional networking.
           </div>
         </div>
 
@@ -335,7 +385,7 @@ export default function SignupPage() {
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                 <FileText className="w-6 h-6 text-primary-foreground" />
               </div>
-              <span className="text-2xl font-bold text-foreground">CVConnect</span>
+              <span className="text-2xl font-bold text-foreground">SeeMyCV</span>
             </Link>
           </div>
 

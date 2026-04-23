@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useLogout } from "@/lib/use-logout";
+import { useUser } from "@/lib/use-user";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,11 +37,21 @@ interface HeaderProps {
 export function Header({ currentPage, onNavigate, isPremium = false }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { logout } = useLogout();
+  const { userData, loading } = useUser();
+  const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return;
+    router.push(`/profile/${trimmed}`);
+    setSearchQuery("");
+  };
 
   const navItems: Array<{ id: string; label: string; icon: typeof Home; href: string | null; badge?: number }> = [
     { id: "feed", label: "Feed", icon: Home, href: null },
     { id: "my-cvs", label: "My CVs", icon: FileText, href: null },
-    {id: "blog", label: "Blogs", icon: Home, href: null}
   ];
 
   return (
@@ -54,20 +67,20 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <FileText className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="hidden sm:block">CVConnect</span>
+              <span className="hidden sm:block">SeeMyCV</span>
             </button>
 
             {/* Search Bar - Desktop */}
-            <div className="hidden md:flex relative">
+            <form onSubmit={handleSearch} className="hidden md:flex relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search for other Users"
+                placeholder="Search by username..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 w-64 lg:w-80 bg-secondary border-border"
               />
-            </div>
+            </form>
           </div>
 
           {/* Desktop Navigation */}
@@ -145,8 +158,8 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-3 py-2">
-                  <p className="font-medium">John Doe</p>
-                  <p className="text-sm text-muted-foreground">john.doe@email.com</p>
+                  <p className="font-medium">{userData?.profile.firstName} {userData?.profile.lastName}</p>
+                  <p className="text-sm text-muted-foreground">{userData?.profile.email}</p>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
@@ -162,7 +175,10 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive">
+                <DropdownMenuItem 
+                  onClick={logout}
+                  className="text-destructive cursor-pointer"
+                >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
                 </DropdownMenuItem>
@@ -183,16 +199,16 @@ export function Header({ currentPage, onNavigate, isPremium = false }: HeaderPro
 
         {/* Mobile Search */}
         <div className="md:hidden pb-3">
-          <div className="relative">
+          <form onSubmit={handleSearch} className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search CVs..."
+              placeholder="Search by username..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 w-full bg-secondary"
             />
-          </div>
+          </form>
         </div>
 
         {/* Mobile Navigation */}

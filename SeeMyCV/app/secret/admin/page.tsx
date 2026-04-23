@@ -18,15 +18,13 @@ interface LoginAttempt {
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [remainingTime, setRemainingTime] = useState(0);
-
-  // Simple hardcoded password for demo (in production, use proper authentication)
-  const ADMIN_PASSWORD = "admin123";
 
   // Check rate limit on component mount
   useEffect(() => {
@@ -108,16 +106,24 @@ export default function AdminLoginPage() {
     recordAttempt();
     setIsLoading(true);
 
-    if (password === ADMIN_PASSWORD) {
-      // Clear attempts on successful login
-      localStorage.removeItem(STORAGE_KEY);
-      // Store admin session in localStorage for demo
-      localStorage.setItem("adminLoggedIn", "true");
-      router.push("/secret/admin/dashboard");
-    } else {
-      setError("Invalid password. Please try again.");
-      setPassword("");
-      checkRateLimit();
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (res.ok) {
+        localStorage.removeItem(STORAGE_KEY);
+        router.push("/secret/admin/dashboard");
+      } else {
+        const data = await res.json();
+        setError(data.error || "Invalid credentials. Please try again.");
+        setPassword("");
+        checkRateLimit();
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
     }
 
     setIsLoading(false);
@@ -140,7 +146,18 @@ export default function AdminLoginPage() {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Admin Password</Label>
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                placeholder="Enter admin username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                disabled={isLoading || isRateLimited}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
@@ -165,7 +182,7 @@ export default function AdminLoginPage() {
 
             {error && (
               <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
@@ -179,15 +196,17 @@ export default function AdminLoginPage() {
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading || !password || isRateLimited}
+              disabled={isLoading || !username || !password || isRateLimited}
             >
               {isLoading ? "Logging in..." : isRateLimited ? "Rate Limited" : "Access Dashboard"}
             </Button>
           </form>
 
-          <p className="text-xs text-muted-foreground text-center mt-4">
-            Demo password: <code className="bg-muted px-2 py-1 rounded">admin123</code>
-          </p>
+          <div className="mt-4 rounded-md bg-muted p-3 text-xs text-muted-foreground space-y-1">
+            <p className="font-semibold text-foreground">Demo credentials</p>
+            <p>Username: <code className="bg-background px-1.5 py-0.5 rounded">SuperUser27549362</code></p>
+            <p>Password: <code className="bg-background px-1.5 py-0.5 rounded">admin123</code></p>
+          </div>
         </CardContent>
       </Card>
     </div>

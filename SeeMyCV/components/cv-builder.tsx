@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +19,6 @@ import {
 import {
   FileText,
   Plus,
-  Download,
   Trash2,
   Sparkles,
   Check,
@@ -37,6 +36,8 @@ import {
   Briefcase,
   FolderOpen,
   BookOpen,
+  Lock,
+  TrendingUp,
 } from "lucide-react";
 import { UserCVProfile } from "./user-cv-profile";
 
@@ -113,52 +114,24 @@ interface CVFormData {
   education: EducationEntry[];
 }
 
-const cvTemplates = [
-  {
-    id: "entry-level",
-    name: "Entry Level / Generic",
-    description: "Perfect for graduates and those new to the workforce",
-    icon: FileCheck,
-    features: ["Clean layout", "Skills emphasis", "Education focused"],
-  },
-  {
-    id: "customer-service",
-    name: "Customer Service",
-    description: "Skills-based CV highlighting soft skills and achievements",
-    icon: Headphones,
-    features: ["Skills-based format", "Achievement metrics", "Communication focus"],
-  },
-  {
-    id: "tech",
-    name: "Tech / IT",
-    description: "Technical CV with project showcase and tech stack",
-    icon: Code,
-    features: ["Technical skills section", "Project showcase", "GitHub integration"],
-  },
-  {
-    id: "teaching",
-    name: "Teaching / Education",
-    description: "Educator-focused CV with certifications and methodologies",
-    icon: GraduationCap,
-    features: ["Qualifications display", "Teaching philosophy", "Student outcomes"],
-  },
-  {
-    id: "entry-level-software-engineer",
-    name: "Entry Level Software Engineer",
-    description: "Premium format designed for new software engineers entering the field",
-    icon: Code,
-    features: ["Technical projects focus", "Programming skills showcase", "GitHub portfolio"],
-    isPremium: true,
-  },
-  {
-    id: "software-engineer-apprenticeship",
-    name: "Software Engineer Apprenticeship",
-    description: "Premium format tailored for apprenticeship programs and early-career roles",
-    icon: GraduationCap,
-    features: ["Learning highlights", "Apprenticeship structure", "Mentorship display"],
-    isPremium: true,
-  },
-];
+interface CvFormat {
+  id: string;
+  title: string;
+  desc: string;
+  job_desc: string;
+  sections: string[];
+  ai_prompt: string;
+  isPremium: boolean;
+}
+
+// Derive an icon from the template title/sections
+function getTemplateIcon(format: CvFormat) {
+  const t = format.title.toLowerCase();
+  if (t.includes("tech") || t.includes("software") || t.includes("it")) return Code;
+  if (t.includes("teach") || t.includes("education") || t.includes("apprentice")) return GraduationCap;
+  if (t.includes("customer") || t.includes("service")) return Headphones;
+  return FileCheck;
+}
 
 const formSections = [
   { id: "contact", label: "Contact", icon: User },
@@ -211,20 +184,71 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
     },
   ]);
 
+  const [cvFormats, setCvFormats] = useState<CvFormat[]>([]);
+  const [formatsLoading, setFormatsLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [showCVForm, setShowCVForm] = useState(false);
   const [showAIFeedback, setShowAIFeedback] = useState(false);
   const [showCVPreview, setShowCVPreview] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
+  const [aiFeedbackFormatId, setAiFeedbackFormatId] = useState<string | null>(null);
+  const [jobDescription, setJobDescription] = useState('');
+  const [aiFeedbackResult, setAiFeedbackResult] = useState<{
+    overallScore: number;
+    matchSummary: string;
+    strengths: string[];
+    improvements: string[];
+    atsScore: number;
+    atsTip: string;
+    missingKeywords: string[];
+    industryTips: string[];
+  } | null>(null);
+  const [aiFeedbackError, setAiFeedbackError] = useState<string | null>(null);
+  const [generatingFormatId, setGeneratingFormatId] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState("contact");
   const [formData, setFormData] = useState<CVFormData>(initialFormData);
+
+  useEffect(() => {
+    fetch("/api/cvformats")
+      .then((r) => r.json())
+      .then((data) => setCvFormats(data.templates ?? []))
+      .catch(() => setCvFormats([]))
+      .finally(() => setFormatsLoading(false));
+  }, []);
 
   const handleUseTemplate = (templateId: string) => {
     setSelectedTemplate(templateId);
     setFormData(initialFormData);
     setActiveSection("contact");
     setShowCVForm(true);
+  };
+
+  const handleGenerateCV = async (formatId: string, formatTitle: string) => {
+    setGeneratingFormatId(formatId);
+    try {
+      const res = await fetch('/api/cv/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ formatId }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? 'Failed to generate CV. Please try again.');
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${formatTitle.replace(/\s+/g, '_')}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Network error. Please check your connection and try again.');
+    } finally {
+      setGeneratingFormatId(null);
+    }
   };
 
   const handleDeleteCV = (id: string) => {
@@ -431,8 +455,8 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
   const handleSaveCV = () => {
     const newCV: SavedCV = {
       id: Date.now().toString(),
-      name: `${formData.firstName} ${formData.surname} - ${selectedTemplate}`,
-      template: selectedTemplate || "entry-level",
+      name: `${formData.firstName} ${formData.surname} - ${cvFormats.find((f) => String(f.id) === selectedTemplate)?.title ?? selectedTemplate}`,
+      template: selectedTemplate || "",
       lastModified: "Just now",
       status: "draft",
       openForFeedback: false,
@@ -445,17 +469,37 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
     setFormData(initialFormData);
   };
 
-  const startAIAnalysis = () => {
+  const startAIAnalysis = async () => {
+    if (!jobDescription.trim() || !aiFeedbackFormatId) return;
     setIsAnalyzing(true);
-    setTimeout(() => {
+    setAiFeedbackError(null);
+    try {
+      const res = await fetch('/api/ai/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobDescription, formatId: aiFeedbackFormatId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 429) {
+          setAiFeedbackError('AI quota exceeded — please wait a moment and try again.');
+        } else {
+          setAiFeedbackError(data.error ?? 'Something went wrong. Please try again.');
+        }
+      } else {
+        setAiFeedbackResult(data.feedback);
+        setAnalysisComplete(true);
+      }
+    } catch {
+      setAiFeedbackError('Network error. Please check your connection and try again.');
+    } finally {
       setIsAnalyzing(false);
-      setAnalysisComplete(true);
-    }, 3000);
+    }
   };
 
-  const getTemplateIcon = (templateId: string) => {
-    const template = cvTemplates.find((t) => t.id === templateId);
-    return template?.icon || FileText;
+  const getTemplateIconById = (templateId: string) => {
+    const format = cvFormats.find((t) => String(t.id) === templateId);
+    return format ? getTemplateIcon(format) : FileText;
   };
 
   const renderFormSection = () => {
@@ -593,7 +637,7 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
                 value={formData.summary}
                 onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
                 placeholder="A dedicated software engineer with 3+ years of experience in full-stack development..."
-                className="min-h-[200px]"
+                className="min-h-50"
               />
               <p className="text-xs text-muted-foreground">
                 Tip: Keep it between 2-4 sentences highlighting your key strengths
@@ -695,7 +739,7 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
                       value={exp.description}
                       onChange={(e) => updateExperience(exp.id, "description", e.target.value)}
                       placeholder="A brief summary of your role and responsibilities..."
-                      className="min-h-[80px]"
+                      className="min-h-20"
                     />
                   </div>
 
@@ -798,7 +842,7 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
                       value={proj.description}
                       onChange={(e) => updateProject(proj.id, "description", e.target.value)}
                       placeholder="A brief summary of what the project does..."
-                      className="min-h-[80px]"
+                      className="min-h-20"
                     />
                   </div>
 
@@ -883,7 +927,7 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
                       value={cat.skills}
                       onChange={(e) => updateSkillCategory(cat.id, "skills", e.target.value)}
                       placeholder="JavaScript, React, Node.js, Python..."
-                      className="min-h-[80px]"
+                      className="min-h-20"
                     />
                   </div>
                 </CardContent>
@@ -998,7 +1042,7 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
                       value={edu.description}
                       onChange={(e) => updateEducation(edu.id, "description", e.target.value)}
                       placeholder="Key modules, achievements, or activities..."
-                      className="min-h-[80px]"
+                      className="min-h-20"
                     />
                   </div>
                 </CardContent>
@@ -1019,91 +1063,163 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Choose a CV Template</h1>
-        <p className="text-muted-foreground">Select a template that best fits your industry and experience level</p>
+      <div className="flex items-end justify-between gap-4 pb-2 border-b border-border">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">My CVs</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Choose a format below — your profile data will be used to populate it
+          </p>
+        </div>
+        <Badge variant="secondary" className="shrink-0 mb-0.5 text-xs">
+          {cvFormats.length} {cvFormats.length === 1 ? "format" : "formats"} available
+        </Badge>
       </div>
 
       {/* Template Grid - Main View */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {cvTemplates.map((template) => (
-          <Card
-            key={template.id}
-            className={`transition-all ${
-              template.isPremium
-                ? "border-orange-500 hover:border-orange-600 hover:shadow-md hover:shadow-orange-200 bg-gradient-to-br from-orange-50 to-transparent"
-                : "hover:border-primary hover:shadow-md"
-            }`}
-          >
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`p-2 rounded-lg ${
-                    template.isPremium
-                      ? "bg-orange-100"
-                      : "bg-primary/10"
-                  }`}
-                >
-                  <template.icon
-                    className={`w-5 h-5 ${
-                      template.isPremium
-                        ? "text-orange-600"
-                        : "text-primary"
-                    }`}
-                  />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-base">{template.name}</CardTitle>
-                    {template.isPremium && (
-                      <Badge className="bg-orange-600 hover:bg-orange-700 text-white text-xs">
-                        Premium
-                      </Badge>
-                    )}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {formatsLoading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="animate-pulse overflow-hidden">
+              <div className="h-2 bg-muted" />
+              <CardHeader className="pb-3 pt-5">
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-muted shrink-0" />
+                  <div className="flex-1 space-y-2 pt-1">
+                    <div className="h-4 bg-muted rounded w-3/4" />
+                    <div className="h-3 bg-muted rounded w-full" />
+                    <div className="h-3 bg-muted rounded w-2/3" />
                   </div>
-                  <CardDescription className="text-xs">{template.description}</CardDescription>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-2">
-              <ul className="space-y-1 mb-4">
-                {template.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Check
-                      className={`w-4 h-4 ${
-                        template.isPremium
-                          ? "text-orange-600"
-                          : "text-accent"
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3">
+                <div className="flex flex-wrap gap-1.5">
+                  {Array.from({ length: 4 }).map((_, j) => (
+                    <div key={j} className="h-5 bg-muted rounded-full w-16" />
+                  ))}
+                </div>
+                <div className="h-9 bg-muted rounded-md mt-2" />
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          cvFormats.map((template) => {
+            const Icon = getTemplateIcon(template);
+            const isPrem = template.isPremium;
+            const locked = isPrem && !isPremium;
+            return (
+              <Card
+                key={template.id}
+                className={`overflow-hidden transition-all flex flex-col ${
+                  isPrem
+                    ? "border-orange-300 dark:border-orange-700 hover:border-orange-500 hover:shadow-lg hover:shadow-orange-100 dark:hover:shadow-orange-950"
+                    : "hover:border-primary/50 hover:shadow-md"
+                }`}
+              >
+                {/* Colour accent strip */}
+                <div className={`h-1 w-full ${isPrem ? "bg-gradient-to-r from-orange-400 to-orange-600" : "bg-primary"}`} />
+
+                <CardHeader className="pb-3 pt-5">
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`p-2.5 rounded-xl shrink-0 ${
+                        isPrem ? "bg-orange-100 dark:bg-orange-950" : "bg-primary/10"
                       }`}
-                    />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              <div className="flex gap-2">
-                <Button
-                  className={`flex-1 ${
-                    template.isPremium
-                      ? "bg-orange-600 hover:bg-orange-700 text-white"
-                      : "bg-primary text-primary-foreground hover:bg-primary/90"
-                  }`}
-                  onClick={() => handleUseTemplate(template.id)}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setShowAIFeedback(true)}
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  AI Feedback
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                    >
+                      <Icon
+                        className={`w-5 h-5 ${isPrem ? "text-orange-600 dark:text-orange-400" : "text-primary"}`}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <CardTitle className="text-sm font-semibold leading-tight">{template.title}</CardTitle>
+                        {isPrem && (
+                          <Badge className="bg-orange-500 hover:bg-orange-600 text-white text-[10px] px-1.5 py-0 h-4 shrink-0">
+                            Premium
+                          </Badge>
+                        )}
+                      </div>
+                      <CardDescription className="text-xs mt-1 leading-relaxed line-clamp-2">
+                        {template.desc}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="pt-0 flex flex-col flex-1 gap-4">
+                  {/* Section badges */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {(template.sections ?? []).map((section) => (
+                      <span
+                        key={section}
+                        className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border ${
+                          isPrem
+                            ? "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-950 dark:text-orange-300"
+                            : "border-border bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        <Check className="w-2.5 h-2.5" />
+                        {section}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-auto space-y-2">
+                    {locked ? (
+                      <Button
+                        className="w-full bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 cursor-not-allowed opacity-80"
+                        disabled
+                      >
+                        <Lock className="w-3.5 h-3.5 mr-2" />
+                        Premium Only
+                      </Button>
+                    ) : (
+                      <Button
+                        className={`w-full ${
+                          isPrem
+                            ? "bg-orange-600 hover:bg-orange-700 text-white"
+                            : "bg-primary text-primary-foreground hover:bg-primary/90"
+                        }`}
+                        disabled={generatingFormatId === String(template.id)}
+                        onClick={() => handleGenerateCV(String(template.id), template.title)}
+                      >
+                        {generatingFormatId === String(template.id) ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-3.5 h-3.5 mr-2" />
+                            Create CV
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`w-full text-xs bg-transparent ${locked ? "opacity-50 cursor-not-allowed" : ""}`}
+                      disabled={locked}
+                      onClick={() => {
+                        if (locked) return;
+                        setAiFeedbackFormatId(String(template.id));
+                        setJobDescription('');
+                        setAiFeedbackResult(null);
+                        setAiFeedbackError(null);
+                        setAnalysisComplete(false);
+                        setShowAIFeedback(true);
+                      }}
+                    >
+                      <Sparkles className="w-3 h-3 mr-1.5" />
+                      AI Feedback
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
       </div>
 
       {/* CV Form Dialog - Wider without preview */}
@@ -1195,163 +1311,201 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
       </Dialog>
 
       {/* AI Feedback Dialog */}
-      <Dialog open={showAIFeedback} onOpenChange={setShowAIFeedback}>
-        <DialogContent className="max-w-2xl max-h-[90vh]">
-          <DialogHeader>
+      <Dialog
+        open={showAIFeedback}
+        onOpenChange={(open) => {
+          setShowAIFeedback(open);
+          if (!open) {
+            setAnalysisComplete(false);
+            setIsAnalyzing(false);
+            setAiFeedbackResult(null);
+            setAiFeedbackError(null);
+            setJobDescription('');
+          }
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-border shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Bot className="w-5 h-5 text-primary" />
-              AI-Powered CV Analysis
+              AI CV Feedback
+              {aiFeedbackFormatId && (
+                <Badge variant="secondary" className="text-xs font-normal">
+                  {cvFormats.find(f => String(f.id) === aiFeedbackFormatId)?.title ?? ''}
+                </Badge>
+              )}
             </DialogTitle>
             <DialogDescription>
-              Get personalized recommendations to improve your CV
+              Paste a job description — the AI will compare it against your profile data for this format
             </DialogDescription>
           </DialogHeader>
 
-          {!analysisComplete ? (
-            <div className="py-12">
-              {!isAnalyzing ? (
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Bot className="w-10 h-10 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">Ready to Analyze</h3>
-                  <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-                    Our AI will review your CV and provide detailed feedback on content, formatting,
-                    and industry-specific recommendations.
+          <div className="flex-1 overflow-y-auto">
+            {/* Step 1 — job description input */}
+            {!analysisComplete && !isAnalyzing && (
+              <div className="px-6 py-6 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Job Description</label>
+                  <Textarea
+                    placeholder="Paste the full job description here — include the role, responsibilities, requirements and any keywords..."
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
+                    rows={12}
+                    className="resize-none text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    The AI will fetch your profile data (experience, education, projects, skills etc.) based on this format&apos;s sections and compare it against the role above.
                   </p>
-                  <Button onClick={startAIAnalysis}>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Start Analysis
-                  </Button>
                 </div>
-              ) : (
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                    <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                {aiFeedbackError && (
+                  <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+                    {aiFeedbackError}
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">Analyzing Your CV...</h3>
-                  <p className="text-muted-foreground">This may take a few seconds</p>
+                )}
+              </div>
+            )}
+
+            {/* Analysing */}
+            {isAnalyzing && (
+              <div className="px-6 py-16 text-center">
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-5 animate-pulse">
+                  <Loader2 className="w-10 h-10 text-primary animate-spin" />
                 </div>
-              )}
-            </div>
-          ) : (
-            <ScrollArea className="max-h-[60vh]">
-              <div className="space-y-6 py-4">
-                {/* Overall Score */}
-                <div className="text-center p-4 bg-primary/10 rounded-lg">
-                  <div className="text-4xl font-bold text-primary mb-1">78/100</div>
-                  <p className="text-sm text-muted-foreground">Overall CV Score</p>
+                <h3 className="text-lg font-semibold text-foreground mb-2">Analysing your profile...</h3>
+                <p className="text-sm text-muted-foreground">Gemini is comparing your data against the job description</p>
+              </div>
+            )}
+
+            {/* Results */}
+            {analysisComplete && aiFeedbackResult && (
+              <div className="px-6 py-6 space-y-6">
+                {/* Score cards */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="text-center p-4 bg-primary/10 rounded-xl">
+                    <div className="text-4xl font-bold text-primary mb-1">
+                      {aiFeedbackResult.overallScore}
+                      <span className="text-lg font-normal">/100</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Overall Match</p>
+                  </div>
+                  <div className="text-center p-4 bg-accent/10 rounded-xl">
+                    <div className="text-4xl font-bold text-accent mb-1">
+                      {aiFeedbackResult.atsScore}
+                      <span className="text-lg font-normal">%</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">ATS Score</p>
+                  </div>
                 </div>
+
+                {/* Summary */}
+                <p className="text-sm text-foreground leading-relaxed bg-muted rounded-lg p-4">
+                  {aiFeedbackResult.matchSummary}
+                </p>
 
                 {/* Strengths */}
                 <div>
-                  <h4 className="font-semibold text-foreground flex items-center gap-2 mb-3">
-                    <CheckCircle2 className="w-5 h-5 text-accent" />
+                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <CheckCircle2 className="w-4 h-4 text-accent" />
                     Strengths
                   </h4>
                   <ul className="space-y-2">
-                    <li className="flex gap-2 text-sm">
-                      <span className="text-accent">+</span>
-                      <span className="text-foreground">
-                        Strong technical skills section with relevant technologies
-                      </span>
-                    </li>
-                    <li className="flex gap-2 text-sm">
-                      <span className="text-accent">+</span>
-                      <span className="text-foreground">
-                        Good use of quantifiable achievements (e.g., "reduced by 50%")
-                      </span>
-                    </li>
-                    <li className="flex gap-2 text-sm">
-                      <span className="text-accent">+</span>
-                      <span className="text-foreground">
-                        Clear education section with expected grade
-                      </span>
-                    </li>
+                    {aiFeedbackResult.strengths.map((s, i) => (
+                      <li key={i} className="flex gap-2 text-sm">
+                        <span className="text-accent font-bold shrink-0">+</span>
+                        <span className="text-foreground">{s}</span>
+                      </li>
+                    ))}
                   </ul>
                 </div>
 
-                {/* Areas for Improvement */}
+                {/* Improvements */}
                 <div>
-                  <h4 className="font-semibold text-foreground flex items-center gap-2 mb-3">
-                    <Lightbulb className="w-5 h-5 text-premium" />
+                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <Lightbulb className="w-4 h-4 text-premium" />
                     Areas for Improvement
                   </h4>
                   <ul className="space-y-2">
-                    <li className="flex gap-2 text-sm">
-                      <span className="text-premium">!</span>
-                      <span className="text-foreground">
-                        Consider adding a professional summary at the top
-                      </span>
-                    </li>
-                    <li className="flex gap-2 text-sm">
-                      <span className="text-premium">!</span>
-                      <span className="text-foreground">
-                        Add more specific metrics to your project descriptions
-                      </span>
-                    </li>
-                    <li className="flex gap-2 text-sm">
-                      <span className="text-premium">!</span>
-                      <span className="text-foreground">
-                        Include relevant certifications or courses
-                      </span>
-                    </li>
+                    {aiFeedbackResult.improvements.map((s, i) => (
+                      <li key={i} className="flex gap-2 text-sm">
+                        <span className="text-premium font-bold shrink-0">!</span>
+                        <span className="text-foreground">{s}</span>
+                      </li>
+                    ))}
                   </ul>
                 </div>
 
-                {/* ATS Score */}
-                <div>
-                  <h4 className="font-semibold text-foreground flex items-center gap-2 mb-3">
-                    <Target className="w-5 h-5 text-primary" />
-                    ATS Compatibility
-                  </h4>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-accent w-[85%]" />
+                {/* Missing keywords */}
+                {aiFeedbackResult.missingKeywords?.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                      <Target className="w-4 h-4 text-primary" />
+                      Missing Keywords
+                    </h4>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {aiFeedbackResult.missingKeywords.map((kw, i) => (
+                        <Badge key={i} variant="outline" className="text-xs border-destructive/40 text-destructive">
+                          {kw}
+                        </Badge>
+                      ))}
                     </div>
-                    <span className="text-sm font-medium text-foreground">85%</span>
+                    <p className="text-xs text-muted-foreground">{aiFeedbackResult.atsTip}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Your CV is well-optimized for Applicant Tracking Systems
-                  </p>
-                </div>
+                )}
 
-                {/* Industry Tips */}
-                <div>
-                  <h4 className="font-semibold text-foreground flex items-center gap-2 mb-3">
-                    <TrendingUp className="w-5 h-5 text-primary" />
-                    Industry-Specific Tips
-                  </h4>
-                  <div className="p-3 bg-muted rounded-lg text-sm text-foreground">
-                    For software engineering roles, consider highlighting:
-                    <ul className="list-disc ml-4 mt-2 space-y-1">
-                      <li>Open source contributions</li>
-                      <li>System design experience</li>
-                      <li>CI/CD and DevOps exposure</li>
+                {/* Industry tips */}
+                {aiFeedbackResult.industryTips?.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                      <TrendingUp className="w-4 h-4 text-primary" />
+                      Industry Tips
+                    </h4>
+                    <ul className="space-y-2">
+                      {aiFeedbackResult.industryTips.map((t, i) => (
+                        <li key={i} className="flex gap-2 text-sm text-foreground">
+                          <span className="text-primary font-bold shrink-0">&bull;</span>
+                          {t}
+                        </li>
+                      ))}
                     </ul>
                   </div>
-                </div>
+                )}
               </div>
-            </ScrollArea>
-          )}
-
-          <DialogFooter>
-            {analysisComplete && (
-              <Button variant="outline" className="bg-transparent">
-                <Download className="w-4 h-4 mr-2" />
-                Download Full Report
-              </Button>
             )}
-            <Button
-              onClick={() => {
-                setShowAIFeedback(false);
-                setAnalysisComplete(false);
-                setIsAnalyzing(false);
-              }}
-            >
-              Close
-            </Button>
-          </DialogFooter>
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-border shrink-0 flex items-center justify-between gap-3">
+            <div>
+              {analysisComplete && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setAnalysisComplete(false);
+                    setAiFeedbackResult(null);
+                    setAiFeedbackError(null);
+                    setJobDescription('');
+                  }}
+                >
+                  Try Another Job
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowAIFeedback(false)}>
+                Close
+              </Button>
+              {!analysisComplete && (
+                <Button
+                  onClick={startAIAnalysis}
+                  disabled={isAnalyzing || !jobDescription.trim()}
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  {isAnalyzing ? 'Analysing...' : 'Analyse CV'}
+                </Button>
+              )}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

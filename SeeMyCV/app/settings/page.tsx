@@ -3,10 +3,13 @@
 import { Header } from "@/components/header";
 import { SettingsPage } from "@/components/settings-page";
 import { useState } from "react";
+import { useUser } from "@/lib/use-user";
 
 export default function SettingsRoute() {
   const [currentPage, setCurrentPage] = useState("settings");
-  const [isPremium, setIsPremium] = useState(false);
+  const { userData, loading } = useUser();
+  
+  const isPremium = userData?.user.isPremium || false;
 
   const handleUpgrade = () => {
     // Handle upgrade logic
@@ -28,7 +31,7 @@ export default function SettingsRoute() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="font-semibold text-foreground mb-4">CVConnect</h3>
+              <h3 className="font-semibold text-foreground mb-4">SeeMyCV</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
                   <a href="/" className="hover:text-foreground transition-colors">
@@ -113,7 +116,7 @@ export default function SettingsRoute() {
           </div>
           <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
             <p>
-              2024 CVConnect. All rights reserved. Built with privacy in mind -
+              2026 SeeMyCV. All rights reserved. Built with privacy in mind -
               no profile pictures to prevent discrimination.
             </p>
           </div>

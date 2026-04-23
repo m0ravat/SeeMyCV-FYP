@@ -29,8 +29,29 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate login - instant redirect for demo
-    router.push("/dashboard");
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || "Login failed");
+        setIsLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+      console.log(data);
+      
+      router.push("/dashboard");
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred during login");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -43,7 +64,7 @@ export default function LoginPage() {
             <div className="w-10 h-10 bg-primary-foreground/20 rounded-lg flex items-center justify-center">
               <FileText className="w-6 h-6" />
             </div>
-            <span className="text-2xl font-bold">CVConnect</span>
+            <span className="text-2xl font-bold">SeeMyCV</span>
           </Link>
 
           <div className="space-y-6">
@@ -71,7 +92,7 @@ export default function LoginPage() {
           </div>
 
           <div className="text-primary-foreground/60 text-sm">
-            2024 CVConnect. Privacy-first professional networking.
+            2026 SeeMyCV. Privacy-first professional networking.
           </div>
         </div>
 
@@ -89,7 +110,7 @@ export default function LoginPage() {
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                 <FileText className="w-6 h-6 text-primary-foreground" />
               </div>
-              <span className="text-2xl font-bold text-foreground">CVConnect</span>
+              <span className="text-2xl font-bold text-foreground">SeeMyCV</span>
             </Link>
           </div>
 
