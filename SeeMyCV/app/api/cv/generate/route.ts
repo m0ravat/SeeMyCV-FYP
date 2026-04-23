@@ -10,7 +10,6 @@ import {
   BorderStyle,
   ExternalHyperlink,
   LevelFormat,
-  ShadingType,
   convertInchesToTwip,
 } from 'docx';
 
@@ -19,21 +18,19 @@ import {
 const FONT = 'Arial';
 const pt = (n: number) => n * 2; // half-points used by docx for font size
 
-/** Bold centred paragraph — white text on black background for header */
+/** Bold centred paragraph — black text, white background */
 function centeredBoldWhite(text: string, size = pt(16)): Paragraph {
   return new Paragraph({
     alignment: AlignmentType.CENTER,
-    shading: { type: ShadingType.SOLID, color: '000000', fill: '000000' },
     spacing: { before: 80, after: 0 },
-    children: [new TextRun({ text, bold: true, size, color: 'FFFFFF', font: FONT })],
+    children: [new TextRun({ text, bold: true, size, color: '000000', font: FONT })],
   });
 }
 
-/** Centred contact line — white text on black */
+/** Centred contact line — black text, white background */
 function centeredContactWhite(children: (TextRun | ExternalHyperlink)[]): Paragraph {
   return new Paragraph({
     alignment: AlignmentType.CENTER,
-    shading: { type: ShadingType.SOLID, color: '000000', fill: '000000' },
     spacing: { before: 0, after: 160 },
     children,
   });
@@ -198,16 +195,16 @@ export async function POST(request: Request) {
     // Contact line: Location | Phone | Email | Website — white text on black
     const contactParts: (TextRun | ExternalHyperlink)[] = [];
     const addPipe = () =>
-      contactParts.push(new TextRun({ text: ' | ', size: pt(11), color: 'FFFFFF', font: FONT }));
+      contactParts.push(new TextRun({ text: ' | ', size: pt(11), color: '000000', font: FONT }));
 
-    if (p.person_location) contactParts.push(new TextRun({ text: p.person_location, size: pt(11), color: 'FFFFFF', font: FONT }));
-    if (p.phone_number) { addPipe(); contactParts.push(new TextRun({ text: p.phone_number, size: pt(11), color: 'FFFFFF', font: FONT })); }
+    if (p.person_location) contactParts.push(new TextRun({ text: p.person_location, size: pt(11), color: '000000', font: FONT }));
+    if (p.phone_number) { addPipe(); contactParts.push(new TextRun({ text: p.phone_number, size: pt(11), color: '000000', font: FONT })); }
     if (p.email) {
       addPipe();
       contactParts.push(
         new ExternalHyperlink({
           link: `mailto:${p.email}`,
-          children: [new TextRun({ text: p.email, style: 'Hyperlink', size: pt(11), color: 'FFFFFF', font: FONT })],
+          children: [new TextRun({ text: p.email, size: pt(11), color: '000000', font: FONT })],
         }),
       );
     }
@@ -216,7 +213,7 @@ export async function POST(request: Request) {
       contactParts.push(
         new ExternalHyperlink({
           link: p.personal_website,
-          children: [new TextRun({ text: p.personal_website, style: 'Hyperlink', size: pt(11), color: 'FFFFFF', font: FONT })],
+          children: [new TextRun({ text: p.personal_website, size: pt(11), color: '000000', font: FONT })],
         }),
       );
     }
