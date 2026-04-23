@@ -1002,130 +1002,144 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Choose a CV Template</h1>
-        <p className="text-muted-foreground">Select a template that best fits your industry and experience level</p>
+      <div className="flex items-end justify-between gap-4 pb-2 border-b border-border">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">My CVs</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Choose a format below — your profile data will be used to populate it
+          </p>
+        </div>
+        <Badge variant="secondary" className="shrink-0 mb-0.5 text-xs">
+          {cvFormats.length} {cvFormats.length === 1 ? "format" : "formats"} available
+        </Badge>
       </div>
 
       {/* Template Grid - Main View */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
         {formatsLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-muted" />
-                  <div className="flex-1 space-y-1.5">
+            <Card key={i} className="animate-pulse overflow-hidden">
+              <div className="h-2 bg-muted" />
+              <CardHeader className="pb-3 pt-5">
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-muted shrink-0" />
+                  <div className="flex-1 space-y-2 pt-1">
                     <div className="h-4 bg-muted rounded w-3/4" />
                     <div className="h-3 bg-muted rounded w-full" />
+                    <div className="h-3 bg-muted rounded w-2/3" />
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="pt-2 space-y-2">
-                <div className="h-3 bg-muted rounded w-2/3" />
-                <div className="h-3 bg-muted rounded w-1/2" />
-                <div className="h-8 bg-muted rounded mt-4" />
+              <CardContent className="pt-0 space-y-3">
+                <div className="flex flex-wrap gap-1.5">
+                  {Array.from({ length: 4 }).map((_, j) => (
+                    <div key={j} className="h-5 bg-muted rounded-full w-16" />
+                  ))}
+                </div>
+                <div className="h-9 bg-muted rounded-md mt-2" />
               </CardContent>
             </Card>
           ))
         ) : (
-        cvFormats.map((template) => {
-          const Icon = getTemplateIcon(template);
-          return (
-          <Card
-            key={template.id}
-            className={`transition-all ${
-              template.isPremium
-                ? "border-orange-500 hover:border-orange-600 hover:shadow-md hover:shadow-orange-200 bg-gradient-to-br from-orange-50 to-transparent"
-                : "hover:border-primary hover:shadow-md"
-            }`}
-          >
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`p-2 rounded-lg ${
-                    template.isPremium
-                      ? "bg-orange-100"
-                      : "bg-primary/10"
-                  }`}
-                >
-                  <Icon
-                    className={`w-5 h-5 ${
-                      template.isPremium
-                        ? "text-orange-600"
-                        : "text-primary"
-                    }`}
-                  />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-base">{template.title}</CardTitle>
-                    {template.isPremium && (
-                      <Badge className="bg-orange-600 hover:bg-orange-700 text-white text-xs">
-                        Premium
-                      </Badge>
-                    )}
-                  </div>
-                  <CardDescription className="text-xs">{template.desc}</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-2">
-              <ul className="space-y-1 mb-4">
-                {(template.sections ?? []).map((section) => (
-                  <li key={section} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Check
-                      className={`w-4 h-4 ${
-                        template.isPremium
-                          ? "text-orange-600"
-                          : "text-accent"
+          cvFormats.map((template) => {
+            const Icon = getTemplateIcon(template);
+            const isPrem = template.isPremium;
+            const locked = isPrem && !isPremium;
+            return (
+              <Card
+                key={template.id}
+                className={`overflow-hidden transition-all flex flex-col ${
+                  isPrem
+                    ? "border-orange-300 dark:border-orange-700 hover:border-orange-500 hover:shadow-lg hover:shadow-orange-100 dark:hover:shadow-orange-950"
+                    : "hover:border-primary/50 hover:shadow-md"
+                }`}
+              >
+                {/* Colour accent strip */}
+                <div className={`h-1 w-full ${isPrem ? "bg-gradient-to-r from-orange-400 to-orange-600" : "bg-primary"}`} />
+
+                <CardHeader className="pb-3 pt-5">
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`p-2.5 rounded-xl shrink-0 ${
+                        isPrem ? "bg-orange-100 dark:bg-orange-950" : "bg-primary/10"
                       }`}
-                    />
-                    {section}
-                  </li>
-                ))}
-              </ul>
-              <div className="flex gap-2">
-                {template.isPremium && !isPremium ? (
-                  <Button
-                    className="flex-1 bg-orange-100 text-orange-600 hover:bg-orange-100 cursor-not-allowed opacity-70"
-                    disabled
-                    title="Upgrade to Premium to unlock this template"
-                  >
-                    <Lock className="w-4 h-4 mr-2" />
-                    Premium Only
-                  </Button>
-                ) : (
-                  <Button
-                    className={`flex-1 ${
-                      template.isPremium
-                        ? "bg-orange-600 hover:bg-orange-700 text-white"
-                        : "bg-primary text-primary-foreground hover:bg-primary/90"
-                    }`}
-                    onClick={() => handleUseTemplate(String(template.id))}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  className={`flex-1 ${template.isPremium && !isPremium ? "cursor-not-allowed opacity-50" : ""}`}
-                  disabled={template.isPremium && !isPremium}
-                  onClick={() => !template.isPremium || isPremium ? setShowAIFeedback(true) : onUpgrade?.()}
-                >
-                  {template.isPremium && !isPremium ? (
-                    <Lock className="w-4 h-4 mr-2" />
-                  ) : (
-                    <Sparkles className="w-4 h-4 mr-2" />
-                  )}
-                  AI Feedback
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          );
-        })
+                    >
+                      <Icon
+                        className={`w-5 h-5 ${isPrem ? "text-orange-600 dark:text-orange-400" : "text-primary"}`}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <CardTitle className="text-sm font-semibold leading-tight">{template.title}</CardTitle>
+                        {isPrem && (
+                          <Badge className="bg-orange-500 hover:bg-orange-600 text-white text-[10px] px-1.5 py-0 h-4 shrink-0">
+                            Premium
+                          </Badge>
+                        )}
+                      </div>
+                      <CardDescription className="text-xs mt-1 leading-relaxed line-clamp-2">
+                        {template.desc}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="pt-0 flex flex-col flex-1 gap-4">
+                  {/* Section badges */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {(template.sections ?? []).map((section) => (
+                      <span
+                        key={section}
+                        className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border ${
+                          isPrem
+                            ? "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-950 dark:text-orange-300"
+                            : "border-border bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        <Check className="w-2.5 h-2.5" />
+                        {section}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-auto space-y-2">
+                    {locked ? (
+                      <Button
+                        className="w-full bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 cursor-not-allowed opacity-80"
+                        disabled
+                      >
+                        <Lock className="w-3.5 h-3.5 mr-2" />
+                        Premium Only
+                      </Button>
+                    ) : (
+                      <Button
+                        className={`w-full ${
+                          isPrem
+                            ? "bg-orange-600 hover:bg-orange-700 text-white"
+                            : "bg-primary text-primary-foreground hover:bg-primary/90"
+                        }`}
+                        onClick={() => handleUseTemplate(String(template.id))}
+                      >
+                        <Plus className="w-3.5 h-3.5 mr-2" />
+                        Create CV
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`w-full text-xs bg-transparent ${locked ? "opacity-50 cursor-not-allowed" : ""}`}
+                      disabled={locked}
+                      onClick={() => !locked && setShowAIFeedback(true)}
+                    >
+                      <Sparkles className="w-3 h-3 mr-1.5" />
+                      AI Feedback
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
 
