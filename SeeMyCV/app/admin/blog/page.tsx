@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +28,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
@@ -56,110 +66,19 @@ import {
   Settings,
   LogOut,
   Shield,
+  Loader2,
 } from "lucide-react";
 
 interface BlogPost {
   id: string;
   title: string;
-  excerpt: string;
-  content: string;
-  author: string;
+  summary: string;
+  full_blog: string;
   category: string;
-  tags: string[];
-  publishedAt: string;
-  readTime: string;
-  views: number;
-  status: "published" | "draft";
+  created_at: string;
 }
 
-const mockPosts: BlogPost[] = [
-  {
-    id: "1",
-    title: "10 Tips for Writing an Effective CV in 2026",
-    excerpt:
-      "Learn the essential strategies for creating a CV that stands out to recruiters and passes ATS systems.",
-    content: "",
-    author: "SeeMyCV Team",
-    category: "CV Tips",
-    tags: ["CV Writing", "Job Search", "Career Advice"],
-    publishedAt: "January 15, 2026",
-    readTime: "5 min read",
-    views: 1234,
-    status: "published",
-  },
-  {
-    id: "2",
-    title: "How to Tailor Your CV for Tech Roles",
-    excerpt:
-      "A comprehensive guide to highlighting technical skills, projects, and achievements for software development positions.",
-    content: "",
-    author: "Sarah Mitchell",
-    category: "Industry Guides",
-    tags: ["Tech", "Software Development", "CV Tips"],
-    publishedAt: "January 10, 2026",
-    readTime: "8 min read",
-    views: 892,
-    status: "published",
-  },
-  {
-    id: "3",
-    title: "The Power of Skills-Based CVs for Career Changers",
-    excerpt:
-      "Discover how to leverage transferable skills when transitioning to a new industry or role.",
-    content: "",
-    author: "James Rodriguez",
-    category: "Career Change",
-    tags: ["Career Change", "Skills", "CV Format"],
-    publishedAt: "January 5, 2026",
-    readTime: "6 min read",
-    views: 756,
-    status: "published",
-  },
-  {
-    id: "4",
-    title: "Understanding ATS: How to Beat the Bots",
-    excerpt:
-      "Learn how Applicant Tracking Systems work and how to optimize your CV to pass automated screening.",
-    content: "",
-    author: "SeeMyCV Team",
-    category: "CV Tips",
-    tags: ["ATS", "Job Applications", "CV Optimization"],
-    publishedAt: "December 28, 2023",
-    readTime: "7 min read",
-    views: 2341,
-    status: "published",
-  },
-  {
-    id: "5",
-    title: "Creating Your First CV: A Graduate's Guide",
-    excerpt:
-      "Step-by-step instructions for recent graduates entering the job market with limited work experience.",
-    content: "",
-    author: "Emily Chen",
-    category: "Getting Started",
-    tags: ["Graduates", "Entry Level", "First Job"],
-    publishedAt: "December 20, 2023",
-    readTime: "10 min read",
-    views: 1567,
-    status: "published",
-  },
-  {
-    id: "6",
-    title: "Draft: Networking Tips for Job Seekers",
-    excerpt: "Building professional connections that lead to career opportunities.",
-    content: "",
-    author: "SeeMyCV Team",
-    category: "Career Advice",
-    tags: ["Networking", "Career Development"],
-    publishedAt: "",
-    readTime: "5 min read",
-    views: 0,
-    status: "draft",
-  },
-];
-
-const categories = [
-  "All Categories",
+const CATEGORIES = [
   "CV Tips",
   "Industry Guides",
   "Career Change",
@@ -167,56 +86,119 @@ const categories = [
   "Career Advice",
 ];
 
+const emptyForm = { title: "", summary: "", full_blog: "", category: "" };
+
+function formatDate(d: string) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
 export default function AdminBlogPage() {
-  const [posts, setPosts] = useState(mockPosts);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-  const [isCreating, setIsCreating] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [newPost, setNewPost] = useState({
-    title: "",
-    excerpt: "",
-    content: "",
-    category: "",
-    tags: "",
-  });
+  const [saving, setSaving] = useState(false);
+
+  // Create modal
+  const [isCreating, setIsCreating] = useState(false);
+  const [createForm, setCreateForm] = useState(emptyForm);
+
+  // Edit modal
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
+  const [editForm, setEditForm] = useState(emptyForm);
+
+  // Preview modal
+  const [previewPost, setPreviewPost] = useState<BlogPost | null>(null);
+
+  // Delete confirmation
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Fetch posts from DB
+  const fetchPosts = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/blog");
+      const data = await res.json();
+      setPosts(data.posts ?? []);
+    } catch {
+      setPosts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchPosts(); }, []);
 
   const filteredPosts = posts.filter((post) => {
     const matchesSearch =
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = activeTab === "all" || post.status === activeTab;
-    return matchesSearch && matchesStatus;
+      post.summary.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
   });
 
-  const publishedPosts = posts.filter((p) => p.status === "published");
-  const draftPosts = posts.filter((p) => p.status === "draft");
-
-  const handleDeletePost = (id: string) => {
-    setPosts(posts.filter((p) => p.id !== id));
+  // Create
+  const handleCreatePost = async () => {
+    if (!createForm.title || !createForm.summary || !createForm.full_blog) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/blog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(createForm),
+      });
+      if (res.ok) {
+        setIsCreating(false);
+        setCreateForm(emptyForm);
+        await fetchPosts();
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleCreatePost = () => {
-    const post: BlogPost = {
-      id: Date.now().toString(),
-      title: newPost.title,
-      excerpt: newPost.excerpt,
-      content: newPost.content,
-      author: "Admin User",
-      category: newPost.category,
-      tags: newPost.tags.split(",").map((t) => t.trim()),
-      publishedAt: new Date().toLocaleDateString("en-GB", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
-      readTime: "5 min read",
-      views: 0,
-      status: "draft",
-    };
-    setPosts([post, ...posts]);
-    setNewPost({ title: "", excerpt: "", content: "", category: "", tags: "" });
-    setIsCreating(false);
+  // Edit
+  const openEdit = (post: BlogPost) => {
+    setEditingPost(post);
+    setEditForm({ title: post.title, summary: post.summary, full_blog: post.full_blog, category: post.category ?? "" });
+  };
+
+  const handleUpdatePost = async () => {
+    if (!editingPost || !editForm.title || !editForm.summary || !editForm.full_blog) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/blog", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editingPost.id, ...editForm }),
+      });
+      if (res.ok) {
+        setEditingPost(null);
+        await fetchPosts();
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Delete
+  const handleDeletePost = async () => {
+    if (!deletingId) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/blog", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: deletingId }),
+      });
+      if (res.ok) {
+        setDeletingId(null);
+        await fetchPosts();
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const navItems = [
@@ -403,99 +385,14 @@ export default function AdminBlogPage() {
               Manage blog posts and share career advice with users
             </p>
           </div>
-          <Dialog open={isCreating} onOpenChange={setIsCreating}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Post
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Create New Blog Post</DialogTitle>
-                <DialogDescription>
-                  Write a new article to help users with their career journey
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 mt-4">
-                <div>
-                  <Label>Title</Label>
-                  <Input
-                    placeholder="Enter post title..."
-                    value={newPost.title}
-                    onChange={(e) =>
-                      setNewPost({ ...newPost, title: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Excerpt</Label>
-                  <Textarea
-                    placeholder="Brief description of the article..."
-                    value={newPost.excerpt}
-                    onChange={(e) =>
-                      setNewPost({ ...newPost, excerpt: e.target.value })
-                    }
-                    rows={2}
-                  />
-                </div>
-                <div>
-                  <Label>Content</Label>
-                  <Textarea
-                    placeholder="Write your article content..."
-                    value={newPost.content}
-                    onChange={(e) =>
-                      setNewPost({ ...newPost, content: e.target.value })
-                    }
-                    rows={8}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Category</Label>
-                    <Select
-                      value={newPost.category}
-                      onValueChange={(value) =>
-                        setNewPost({ ...newPost, category: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.slice(1).map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Tags (comma separated)</Label>
-                    <Input
-                      placeholder="e.g. CV Tips, Career Advice"
-                      value={newPost.tags}
-                      onChange={(e) =>
-                        setNewPost({ ...newPost, tags: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setIsCreating(false)}>
-                    Cancel
-                  </Button>
-                  <Button variant="outline">Save as Draft</Button>
-                  <Button onClick={handleCreatePost}>Publish</Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => { setCreateForm(emptyForm); setIsCreating(true); }}>
+            <Plus className="w-4 h-4 mr-2" />
+            Create Post
+          </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
@@ -503,10 +400,8 @@ export default function AdminBlogPage() {
                   <FileText className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {publishedPosts.length}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Published Posts</p>
+                  <p className="text-2xl font-bold text-foreground">{posts.length}</p>
+                  <p className="text-sm text-muted-foreground">Total Posts</p>
                 </div>
               </div>
             </CardContent>
@@ -515,28 +410,13 @@ export default function AdminBlogPage() {
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
-                  <Pencil className="w-5 h-5 text-accent" />
+                  <BookOpen className="w-5 h-5 text-accent" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-foreground">
-                    {draftPosts.length}
+                    {Array.from(new Set(posts.map((p) => p.category).filter(Boolean))).length}
                   </p>
-                  <p className="text-sm text-muted-foreground">Drafts</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
-                  <Eye className="w-5 h-5 text-success" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {posts.reduce((acc, p) => acc + p.views, 0).toLocaleString()}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Total Views</p>
+                  <p className="text-sm text-muted-foreground">Categories</p>
                 </div>
               </div>
             </CardContent>
@@ -548,8 +428,10 @@ export default function AdminBlogPage() {
                   <TrendingUp className="w-5 h-5 text-premium" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">+12%</p>
-                  <p className="text-sm text-muted-foreground">Engagement</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {posts.length > 0 ? formatDate(posts[0].created_at) : "—"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Latest Post</p>
                 </div>
               </div>
             </CardContent>
@@ -560,7 +442,7 @@ export default function AdminBlogPage() {
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <CardTitle>All Posts</CardTitle>
+              <CardTitle>All Posts ({posts.length})</CardTitle>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -573,103 +455,185 @@ export default function AdminBlogPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList>
-                <TabsTrigger value="all">All ({posts.length})</TabsTrigger>
-                <TabsTrigger value="published">
-                  Published ({publishedPosts.length})
-                </TabsTrigger>
-                <TabsTrigger value="draft">
-                  Drafts ({draftPosts.length})
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value={activeTab} className="mt-4">
-                <div className="space-y-3">
-                  {filteredPosts.map((post) => (
-                    <div
-                      key={post.id}
-                      className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-secondary/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-                          <BookOpen className="w-5 h-5 text-primary" />
-                        </div>
-                        <div className="min-w-0">
-                          <h3 className="font-medium text-foreground truncate">
-                            {post.title}
-                          </h3>
-                          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                            <span>{post.author}</span>
-                            <span className="hidden sm:inline">·</span>
-                            <span className="hidden sm:inline">{post.category}</span>
-                            {post.status === "published" && (
-                              <>
-                                <span className="hidden sm:inline">·</span>
-                                <span className="hidden sm:inline">{post.publishedAt}</span>
-                                <span className="hidden sm:inline">·</span>
-                                <span className="hidden sm:inline">{post.views} views</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-secondary/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                        <BookOpen className="w-5 h-5 text-primary" />
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Badge
-                          variant={
-                            post.status === "published" ? "default" : "secondary"
-                          }
-                          className={
-                            post.status === "published"
-                              ? "bg-success text-success-foreground"
-                              : ""
-                          }
-                        >
-                          {post.status}
-                        </Badge>
-                        <Button variant="ghost" size="icon" className="hidden sm:flex">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="hidden sm:flex">
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => handleDeletePost(post.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                      <div className="min-w-0">
+                        <h3 className="font-medium text-foreground truncate">{post.title}</h3>
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                          {post.category && <Badge variant="secondary" className="text-xs">{post.category}</Badge>}
+                          <span className="hidden sm:inline">{formatDate(post.created_at)}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{post.summary}</p>
                       </div>
                     </div>
-                  ))}
-
-                  {filteredPosts.length === 0 && (
-                    <div className="text-center py-12">
-                      <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="font-semibold text-foreground mb-2">
-                        No posts found
-                      </h3>
-                      <p className="text-muted-foreground mb-4">
-                        {searchQuery
-                          ? "Try adjusting your search"
-                          : "Create your first blog post to get started"}
-                      </p>
-                      {!searchQuery && (
-                        <Button onClick={() => setIsCreating(true)}>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Create Post
-                        </Button>
-                      )}
+                    <div className="flex items-center gap-1 shrink-0 ml-2">
+                      <Button variant="ghost" size="icon" title="Preview" onClick={() => setPreviewPost(post)}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" title="Edit" onClick={() => openEdit(post)}>
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Delete"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setDeletingId(post.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
+                  </div>
+                ))}
+
+                {filteredPosts.length === 0 && (
+                  <div className="text-center py-12">
+                    <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="font-semibold text-foreground mb-2">No posts found</h3>
+                    <p className="text-muted-foreground mb-4">
+                      {searchQuery ? "Try adjusting your search" : "Create your first blog post to get started"}
+                    </p>
+                    {!searchQuery && (
+                      <Button onClick={() => setIsCreating(true)}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Post
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>
+
+      {/* ── Create Modal ── */}
+      <Dialog open={isCreating} onOpenChange={setIsCreating}>
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-border flex-shrink-0">
+            <DialogTitle>Create New Blog Post</DialogTitle>
+            <DialogDescription>Write a new article to share with users</DialogDescription>
+          </DialogHeader>
+          <div className="overflow-y-auto flex-1 px-6 py-4 space-y-4">
+            <div>
+              <Label>Title *</Label>
+              <Input placeholder="Post title..." value={createForm.title} onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })} />
+            </div>
+            <div>
+              <Label>Category</Label>
+              <Select value={createForm.category} onValueChange={(v) => setCreateForm({ ...createForm, category: v })}>
+                <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Summary * <span className="text-muted-foreground text-xs">(shown on blog card)</span></Label>
+              <Textarea placeholder="Brief summary visible on the blog listing..." value={createForm.summary} onChange={(e) => setCreateForm({ ...createForm, summary: e.target.value })} rows={3} />
+            </div>
+            <div>
+              <Label>Full Article * <span className="text-muted-foreground text-xs">(shown in modal when reader clicks)</span></Label>
+              <Textarea placeholder="Write the full article content here..." value={createForm.full_blog} onChange={(e) => setCreateForm({ ...createForm, full_blog: e.target.value })} rows={10} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 px-6 py-4 border-t border-border flex-shrink-0">
+            <Button variant="outline" onClick={() => setIsCreating(false)}>Cancel</Button>
+            <Button onClick={handleCreatePost} disabled={saving || !createForm.title || !createForm.summary || !createForm.full_blog}>
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+              Publish Post
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Edit Modal ── */}
+      <Dialog open={!!editingPost} onOpenChange={(open) => !open && setEditingPost(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-border flex-shrink-0">
+            <DialogTitle>Edit Blog Post</DialogTitle>
+            <DialogDescription>Update the post details below</DialogDescription>
+          </DialogHeader>
+          <div className="overflow-y-auto flex-1 px-6 py-4 space-y-4">
+            <div>
+              <Label>Title *</Label>
+              <Input placeholder="Post title..." value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
+            </div>
+            <div>
+              <Label>Category</Label>
+              <Select value={editForm.category} onValueChange={(v) => setEditForm({ ...editForm, category: v })}>
+                <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Summary *</Label>
+              <Textarea placeholder="Brief summary..." value={editForm.summary} onChange={(e) => setEditForm({ ...editForm, summary: e.target.value })} rows={3} />
+            </div>
+            <div>
+              <Label>Full Article *</Label>
+              <Textarea placeholder="Full article content..." value={editForm.full_blog} onChange={(e) => setEditForm({ ...editForm, full_blog: e.target.value })} rows={10} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 px-6 py-4 border-t border-border flex-shrink-0">
+            <Button variant="outline" onClick={() => setEditingPost(null)}>Cancel</Button>
+            <Button onClick={handleUpdatePost} disabled={saving || !editForm.title || !editForm.summary || !editForm.full_blog}>
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Pencil className="w-4 h-4 mr-2" />}
+              Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Preview Modal ── */}
+      <Dialog open={!!previewPost} onOpenChange={(open) => !open && setPreviewPost(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-border flex-shrink-0">
+            {previewPost?.category && <Badge variant="secondary" className="w-fit mb-2">{previewPost.category}</Badge>}
+            <DialogTitle className="text-xl text-balance leading-snug">{previewPost?.title}</DialogTitle>
+            <p className="text-xs text-muted-foreground mt-1">{formatDate(previewPost?.created_at ?? "")}</p>
+          </DialogHeader>
+          <div className="overflow-y-auto flex-1 px-6 py-5">
+            <p className="text-foreground leading-relaxed whitespace-pre-wrap">{previewPost?.full_blog}</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Delete Confirmation ── */}
+      <AlertDialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this post?</AlertDialogTitle>
+            <AlertDialogDescription>This action cannot be undone. The blog post will be permanently removed from the database.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDeletePost}
+              disabled={saving}
+            >
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Footer */}
       <footer className="bg-card border-t border-border py-8 mt-12">
