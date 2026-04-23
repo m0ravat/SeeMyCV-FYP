@@ -163,7 +163,7 @@ export async function POST(request: Request) {
         : { rows: [] },
       includes('education') || includes('academic')
         ? query(
-            `SELECT institute_name, achieved, target, grade_description, description, summary, start_date, end_date
+            `SELECT institute_name, achieved, target, grade_description, location, start_date, end_date
              FROM education WHERE cv_id = $1 ORDER BY start_date DESC NULLS LAST`,
             [cvId],
           )
@@ -191,7 +191,7 @@ export async function POST(request: Request) {
     ]);
 
     // 4. Build docx children array ─────────────────────────────────────────
-    const children: (Paragraph | Table)[] = [];
+    const children: Paragraph[] = [];
 
     // ── Header (black background, white text) ──
     children.push(centeredBoldWhite(`${p.first_name} ${p.last_name}`));
@@ -377,12 +377,9 @@ export async function POST(request: Request) {
             }),
           );
         }
-        // grade_description only shown if no description/summary
-        const desc = e.description ?? e.summary ?? '';
-        if (desc) {
-          children.push(...bullets(desc.split('\n')));
-        } else if (e.grade_description) {
-          children.push(plain(e.grade_description));
+        // grade_description as bullet points if present
+        if (e.grade_description) {
+          children.push(...bullets(e.grade_description.split('\n')));
         }
       }
     }
