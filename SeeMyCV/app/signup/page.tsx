@@ -894,6 +894,91 @@ export default function SignupPage() {
                 </div>
               </div>
 
+              {/* Projects */}
+              <div className="space-y-3 border-t border-border pt-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-semibold flex items-center gap-2">
+                    <FolderOpen className="w-5 h-5 text-primary" />
+                    Projects
+                  </h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddProject}
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {profileData.projects.map((proj) => (
+                    <div key={proj.id} className="p-3 border border-border rounded-lg space-y-2 bg-muted/30">
+                      <Input
+                        placeholder="Project Title"
+                        value={proj.title}
+                        onChange={(e) => handleUpdateProject(proj.id, "title", e.target.value)}
+                        className="text-sm"
+                      />
+                      <Input
+                        placeholder="Summary"
+                        value={proj.summary}
+                        onChange={(e) => handleUpdateProject(proj.id, "summary", e.target.value)}
+                        className="text-sm"
+                      />
+                      <Input
+                        placeholder="Skills used (comma separated)"
+                        value={proj.skills}
+                        onChange={(e) => handleUpdateProject(proj.id, "skills", e.target.value)}
+                        className="text-sm"
+                      />
+                      <Input
+                        placeholder="Project Link / URL"
+                        value={proj.link}
+                        onChange={(e) => handleUpdateProject(proj.id, "link", e.target.value)}
+                        className="text-sm"
+                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label className="text-xs mb-1 block">Start Date</Label>
+                          <Input
+                            type="date"
+                            value={proj.startDate}
+                            onChange={(e) => handleUpdateProject(proj.id, "startDate", e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs mb-1 block">End Date</Label>
+                          <Input
+                            type="date"
+                            value={proj.endDate}
+                            onChange={(e) => handleUpdateProject(proj.id, "endDate", e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                      </div>
+                      <Textarea
+                        placeholder="Project description / what you built"
+                        value={proj.description}
+                        onChange={(e) => handleUpdateProject(proj.id, "description", e.target.value)}
+                        className="text-sm min-h-16 resize-none"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveProject(proj.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Certifications */}
               <div className="space-y-3 border-t border-border pt-6">
                 <div className="flex items-center justify-between">
