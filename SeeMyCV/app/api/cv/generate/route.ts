@@ -163,7 +163,7 @@ export async function POST(request: Request) {
         : { rows: [] },
       includes('education') || includes('academic')
         ? query(
-            `SELECT institute_name, achieved, target, grade_description, start_date, end_date
+            `SELECT institute_name, achieved, target, grade_description, description, summary, start_date, end_date
              FROM education WHERE cv_id = $1 ORDER BY start_date DESC NULLS LAST`,
             [cvId],
           )
@@ -177,7 +177,7 @@ export async function POST(request: Request) {
         : { rows: [] },
       includes('cert') || includes('qualification')
         ? query(
-            `SELECT title, institute, summary, skills, issue_date, expiry_date
+            `SELECT title, institute, summary, description, skills, link, issue_date, expiry_date
              FROM certification WHERE cv_id = $1 ORDER BY issue_date DESC NULLS LAST`,
             [cvId],
           )
@@ -253,12 +253,16 @@ export async function POST(request: Request) {
           s => s.is_soft_skill,
         );
         for (const s of softSkills) {
-          const line = s.description ? `${s.name} - ${s.description}` : s.name;
           children.push(
             new Paragraph({
               bullet: { level: 0 },
               indent: { left: convertInchesToTwip(0.25), hanging: convertInchesToTwip(0.25) },
-              children: [new TextRun({ text: line, size: pt(11), font: FONT, color: '000000' })],
+              children: [
+                new TextRun({ text: s.name, bold: true, size: pt(11), font: FONT, color: '000000' }),
+                ...(s.description
+                  ? [new TextRun({ text: ` - ${s.description}`, size: pt(11), font: FONT, color: '000000' })]
+                  : []),
+              ],
             }),
           );
         }
@@ -349,7 +353,6 @@ export async function POST(request: Request) {
     if ((includes('education') || includes('academic')) && eduRows.rows.length > 0) {
       children.push(sectionHeading('Education'));
       for (const e of eduRows.rows as Record<string, string>[]) {
-        const degree = e.achieved ?? e.target ?? '';
         const dates = `${fmtDate(e.start_date)} - ${fmtDate(e.end_date)}`;
         // Line 1: "Institute Name          (Dates)"
         children.push(
@@ -362,13 +365,24 @@ export async function POST(request: Request) {
             ],
           }),
         );
-        // Line 2: degree name
-        if (degree) {
-          children.push(plain(degree));
+        // Line 2: Target Grade - __, Achieved Grade - __
+        const gradeParts: string[] = [];
+        if (e.target) gradeParts.push(`Target Grade - ${e.target}`);
+        if (e.achieved) gradeParts.push(`Achieved Grade - ${e.achieved}`);
+        if (gradeParts.length > 0) {
+          children.push(
+            new Paragraph({
+              spacing: { after: 40 },
+              children: [new TextRun({ text: gradeParts.join(', '), size: pt(11), font: FONT, color: '000000' })],
+            }),
+          );
         }
-        // Line 3: expected grade
-        if (e.grade_description) {
-          children.push(plain(`Expected - ${e.grade_description}`));
+        // grade_description only shown if no description/summary
+        const desc = e.description ?? e.summary ?? '';
+        if (desc) {
+          children.push(...bullets(desc.split('\n')));
+        } else if (e.grade_description) {
+          children.push(plain(e.grade_description));
         }
       }
     }
