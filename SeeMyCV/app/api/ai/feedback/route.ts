@@ -151,7 +151,7 @@ Based on the candidate profile and job description above, provide structured fee
 
     // 6. Call Gemini API
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -163,8 +163,12 @@ Based on the candidate profile and job description above, provide structured fee
     );
 
     if (!geminiRes.ok) {
-      const err = await geminiRes.text();
-      console.error('[ai/feedback] Gemini error:', err);
+      const errBody = await geminiRes.json().catch(() => ({}));
+      console.error('[ai/feedback] Gemini error:', JSON.stringify(errBody));
+      const status = errBody?.error?.code;
+      if (status === 429) {
+        return NextResponse.json({ error: 'AI quota exceeded. Please wait a moment and try again.' }, { status: 429 });
+      }
       return NextResponse.json({ error: 'AI service error. Please try again.' }, { status: 500 });
     }
 

@@ -452,7 +452,11 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setAiFeedbackError(data.error ?? 'Something went wrong. Please try again.');
+        if (res.status === 429) {
+          setAiFeedbackError('AI quota exceeded — please wait a moment and try again.');
+        } else {
+          setAiFeedbackError(data.error ?? 'Something went wrong. Please try again.');
+        }
       } else {
         setAiFeedbackResult(data.feedback);
         setAnalysisComplete(true);
