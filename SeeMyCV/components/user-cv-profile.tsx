@@ -733,6 +733,7 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
   const [showEditSkillDialog, setShowEditSkillDialog] = useState(false);
   const [editSkillName, setEditSkillName] = useState('');
   const [editSkillDescription, setEditSkillDescription] = useState('');
+  const [editSkillLevel, setEditSkillLevel] = useState('intermediate');
   const [editSkillIsSoft, setEditSkillIsSoft] = useState(false);
   const [editSkillSaving, setEditSkillSaving] = useState(false);
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
@@ -1103,6 +1104,7 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
           } else {
             setEditSkillName(selectedSkill?.name ?? '');
             setEditSkillDescription(selectedSkill?.description ?? '');
+            setEditSkillLevel(selectedSkill?.level ?? 'intermediate');
             setEditSkillIsSoft(selectedSkill?.is_soft_skill ?? false);
           }
         }}
@@ -1119,6 +1121,19 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
                 onChange={(e) => setEditSkillName(e.target.value)}
                 placeholder="e.g. React, Teamwork..."
               />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Skill Level</label>
+              <select
+                value={editSkillLevel}
+                onChange={(e) => setEditSkillLevel(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+                <option value="expert">Expert</option>
+              </select>
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium">Description (optional)</label>
@@ -1155,6 +1170,7 @@ export function UserCVProfile({ data, isOwnProfile = true, onEdit }: UserCVProfi
                       name: editSkillName.trim(),
                       description: editSkillDescription.trim() || null,
                       isSoftSkill: editSkillIsSoft,
+                      level: editSkillLevel,
                     }),
                   });
                   if (!res.ok) throw new Error('Failed to update skill');

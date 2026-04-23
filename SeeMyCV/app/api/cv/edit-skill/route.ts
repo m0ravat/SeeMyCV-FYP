@@ -9,7 +9,7 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const { skillId, name, description, isSoftSkill } = await req.json();
+    const { skillId, name, description, isSoftSkill, level } = await req.json();
     if (!skillId || !name) {
       return NextResponse.json({ error: 'skillId and name are required' }, { status: 400 });
     }
@@ -28,8 +28,8 @@ export async function PATCH(req: Request) {
     }
 
     await query(
-      `UPDATE skill SET name = $1, description = $2, is_soft_skill = $3 WHERE skill_id = $4`,
-      [name, description ?? null, isSoftSkill ?? false, skillId],
+      `UPDATE skill SET name = $1, description = $2, is_soft_skill = $3, skill_level = $4 WHERE skill_id = $5`,
+      [name, description ?? null, isSoftSkill ?? false, level ?? null, skillId],
     );
 
     return NextResponse.json({ success: true });
