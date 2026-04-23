@@ -18,6 +18,9 @@ import {
 
 const FONT = 'Arial';
 const pt = (n: number) => n * 2; // half-points used by docx for font size
+// A4 width (8.27") minus left (0.9") and right (0.9") margins = 6.47" text width
+const TEXT_WIDTH = convertInchesToTwip(6.47);
+const RIGHT_TAB = [{ type: TabStopType.RIGHT, position: TEXT_WIDTH }];
 
 /** Bold centred paragraph — black text, white background */
 function centeredBoldWhite(text: string, size = pt(16)): Paragraph {
@@ -303,7 +306,7 @@ export async function POST(request: Request) {
         children.push(
           new Paragraph({
             spacing: { before: 120, after: 40 },
-            tabStops: [{ type: TabStopType.RIGHT, position: convertInchesToTwip(6.5) }],
+            tabStops: RIGHT_TAB,
             children: [
               new TextRun({ text: titlePart, bold: true, size: pt(11), font: FONT, color: '000000' }),
               new TextRun({ text: `\t(${dateRange})`, size: pt(11), font: FONT, color: '000000' }),
@@ -326,7 +329,7 @@ export async function POST(request: Request) {
         children.push(
           new Paragraph({
             spacing: { before: 120, after: 40 },
-            tabStops: dateRange ? [{ type: TabStopType.RIGHT, position: convertInchesToTwip(6.5) }] : [],
+            tabStops: dateRange ? RIGHT_TAB : [],
             children: [
               new TextRun({ text: proj.title, bold: true, size: pt(11), font: FONT, color: '000000' }),
               ...(dateRange ? [new TextRun({ text: `\t(${dateRange})`, size: pt(11), font: FONT, color: '000000' })] : []),
@@ -348,17 +351,22 @@ export async function POST(request: Request) {
       for (const e of eduRows.rows as Record<string, string>[]) {
         const degree = e.achieved ?? e.target ?? '';
         const dates = `${fmtDate(e.start_date)} - ${fmtDate(e.end_date)}`;
-        // "Degree (Institute)          (Dates)"
+        // Line 1: "Institute Name          (Dates)"
         children.push(
           new Paragraph({
             spacing: { before: 120, after: 40 },
-            tabStops: [{ type: TabStopType.RIGHT, position: convertInchesToTwip(6.5) }],
+            tabStops: RIGHT_TAB,
             children: [
-              new TextRun({ text: `${degree} (${e.institute_name})`, bold: true, size: pt(11), font: FONT, color: '000000' }),
+              new TextRun({ text: e.institute_name ?? '', bold: true, size: pt(11), font: FONT, color: '000000' }),
               new TextRun({ text: `\t(${dates})`, size: pt(11), font: FONT, color: '000000' }),
             ],
           }),
         );
+        // Line 2: degree name
+        if (degree) {
+          children.push(plain(degree));
+        }
+        // Line 3: expected grade
         if (e.grade_description) {
           children.push(plain(`Expected - ${e.grade_description}`));
         }
@@ -373,7 +381,7 @@ export async function POST(request: Request) {
         children.push(
           new Paragraph({
             spacing: { before: 120, after: 40 },
-            tabStops: [{ type: TabStopType.RIGHT, position: convertInchesToTwip(6.5) }],
+            tabStops: RIGHT_TAB,
             children: [
               new TextRun({ text: `${c.title} (${c.institute ?? ''})`, bold: true, size: pt(11), font: FONT, color: '000000' }),
               new TextRun({ text: `\t(${fmtDate(c.issue_date)})`, size: pt(11), font: FONT, color: '000000' }),
