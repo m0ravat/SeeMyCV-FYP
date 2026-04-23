@@ -205,6 +205,7 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
     industryTips: string[];
   } | null>(null);
   const [aiFeedbackError, setAiFeedbackError] = useState<string | null>(null);
+  const [generatingFormatId, setGeneratingFormatId] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState("contact");
   const [formData, setFormData] = useState<CVFormData>(initialFormData);
 
@@ -221,6 +222,33 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
     setFormData(initialFormData);
     setActiveSection("contact");
     setShowCVForm(true);
+  };
+
+  const handleGenerateCV = async (formatId: string, formatTitle: string) => {
+    setGeneratingFormatId(formatId);
+    try {
+      const res = await fetch('/api/cv/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ formatId }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? 'Failed to generate CV. Please try again.');
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${formatTitle.replace(/\s+/g, '_')}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Network error. Please check your connection and try again.');
+    } finally {
+      setGeneratingFormatId(null);
+    }
   };
 
   const handleDeleteCV = (id: string) => {
@@ -1152,10 +1180,20 @@ export function CVBuilder({ isPremium = false, onUpgrade }: CVBuilderProps) {
                             ? "bg-orange-600 hover:bg-orange-700 text-white"
                             : "bg-primary text-primary-foreground hover:bg-primary/90"
                         }`}
-                        onClick={() => handleUseTemplate(String(template.id))}
+                        disabled={generatingFormatId === String(template.id)}
+                        onClick={() => handleGenerateCV(String(template.id), template.title)}
                       >
-                        <Plus className="w-3.5 h-3.5 mr-2" />
-                        Create CV
+                        {generatingFormatId === String(template.id) ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-3.5 h-3.5 mr-2" />
+                            Create CV
+                          </>
+                        )}
                       </Button>
                     )}
                     <Button
